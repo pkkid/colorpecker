@@ -27,10 +27,14 @@ class ColorSlider(QTemplateWidget):
         self.ids.slider.setMinimum(minValue)
         self.ids.slider.setMaximum(maxValue)
         self.ids.spinbox.setRange(minValue, maxValue)
+        if self.value is None: self.setValue(minValue)
+        if self.value > maxValue: self.setValue(maxValue)
+        if self.value < minValue: self.setValue(minValue)
 
     def setValue(self, value):
         self.ids.slider.setValue(value)
         self.ids.spinbox.setValue(value)
+        self.value = value
     
     def _valueChanged(self, value):
         if value != self.value:
