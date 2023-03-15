@@ -17,8 +17,8 @@
     <QWidget layout='QHBoxLayout()' padding='10,4,10,10' spacing='15'>
 
       <!--Current Color -->
-      <QWidget id='currentcolorbg' layout='QVBoxLayout()' padding='0'>
-        <QWidget id='currentcolor'/>
+      <QWidget id='swatchbg' layout='QVBoxLayout()' padding='0'>
+        <QWidget id='swatch'/>
       </QWidget>
       
       <!-- Selection Options -->
@@ -32,20 +32,20 @@
 
         <!-- HSV Sliders -->
         <QWidget id='hsv' layout='QVBoxLayout()' padding='0,2,0,0'>
-          <ColorSlider id='hue' range='0,360'>
-            <Connect valueChanged='hueChanged'/>
+          <ColorSlider id='h' range='0,360'>
+            <Connect valueChanged='_hChanged'/>
           </ColorSlider>
-          <ColorSlider id='saturation' range='0,100'>
-            <Connect valueChanged='saturationChanged'/>
+          <ColorSlider id='s' range='0,100'>
+            <Connect valueChanged='_sChanged'/>
           </ColorSlider>
-          <ColorSlider id='brightness' range='0,100'>
-            <Connect valueChanged='brightnessChanged'/>
+          <ColorSlider id='v' range='0,100'>
+            <Connect valueChanged='_vChanged'/>
           </ColorSlider>
         </QWidget>
 
         <!-- Opacity -->
-        <ColorSlider id='opacity' range='0,100'>
-          <Connect valueChanged='opacityChanged'/>
+        <ColorSlider id='a' range='0,100' value='100'>
+          <Connect valueChanged='_aChanged'/>
         </ColorSlider>
 
       </QWidget>

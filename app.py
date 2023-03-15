@@ -15,12 +15,11 @@ class Application(QtWidgets.QApplication):
 
     def __init__(self, opts):
         super(Application, self).__init__()
-        qtinkwell.addApplicationFonts()             # Add Inkwell fonts
-        qtinkwell.applyStyleSheet(self)             # Apply Inkwell styles
-        self.opts = opts                            # Command line options
-        self.storage = self._initStorage()          # Setup settings storage
-        self.colorpicker = ColorPicker()            # Main Colorpicker window
-        self.colorpicker.setHex('#ff0000')
+        qtinkwell.addApplicationFonts()                 # Add Inkwell fonts
+        qtinkwell.applyStyleSheet(self)                 # Apply Inkwell styles
+        self.opts = opts                                # Command line options
+        self.storage = self._initStorage()              # Setup settings storage
+        self.colorpicker = ColorPicker(hex='#F00')    # Main Colorpicker window
         self.colorpicker.show()
 
     def _initStorage(self):
