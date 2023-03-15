@@ -1,0 +1,50 @@
+//--------------------------
+// ColorPicker Styles
+//--------------------------
+
+#colorpicker {
+
+  #currentcolorbg {
+    background-image: url('$dir/checkerboard.png');
+    border-radius: 5px;
+    #currentcolor {
+      min-height: 100px;
+      min-width: 130px;
+      border-radius: 4px;
+    }
+  }
+  
+  #hex {
+    max-width: 70px;
+    min-width: 70px;
+  }
+  
+  #opacity #sliderbg {
+    background-image: url('$dir/checkerboard.png');
+    min-height: 16px;
+    max-height: 16px;
+    border-radius: 8px;
+    border: 2px solid #222222;
+  }
+  QSlider {
+    height: 16px;
+    background-color: #333333;
+    border-radius: 8px;
+    &::groove:horizontal {
+      background-color: rgba(0,0,0,0);
+      height: 4px;
+    }
+    &::handle:horizontal {
+      background-color: unquote("qradialgradient(
+        cx:0.5, cy:0.5, radius:0.5, fx:0.5, fy:0.5,
+        stop:0 rgba(0,0,0,0),
+        stop:0.6 rgba(0,0,0,0),
+        stop:0.8 rgba(0,0,0,0.4)
+      );");
+      border-radius: 8px;
+      border: 2px solid #ddd;
+      height: 12px;
+      width: 12px;
+    }
+  }
+}

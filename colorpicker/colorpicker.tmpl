@@ -1,0 +1,55 @@
+<QWidget layout='QVBoxLayout()' fixedWidth='450' padding='0'>
+  <StyleSheet args='resources/colorpicker.sass'/>
+  <Set attribute='Qt.WA_TranslucentBackground'/>
+  <Set windowFlags='Qt.Dialog | Qt.FramelessWindowHint'/>
+  <Set windowTitle='APPNAME+" Settings"'/>
+  <QWidget id='colorpicker' class='appwindow' layout='QVBoxLayout()' padding='1' spacing='0'>
+    
+    <!-- TitleBar -->
+    <Draggable args='self' layout='QHBoxLayout()' padding='(10,10,10,0)'>
+      <QLabel text='Color Picker'/>
+      <Stretch/>
+      <QPushButton text='󰅖' class='close'>
+        <Connect clicked='close'/>
+      </QPushButton>
+    </Draggable>
+
+    <QWidget layout='QHBoxLayout()' padding='10,4,10,10' spacing='15'>
+
+      <!--Current Color -->
+      <QWidget id='currentcolorbg' layout='QVBoxLayout()' padding='0'>
+        <QWidget id='currentcolor'/>
+      </QWidget>
+      
+      <!-- Selection Options -->
+      <QWidget id='options' layout='QVBoxLayout()' padding='0'>
+        
+        <!-- Toolbar -->
+        <QWidget id='options' layout='QHBoxLayout()' padding='0' spacing='10'>
+          <QLineEdit id='hex' text='#000000'/>
+          <Stretch/>
+        </QWidget>
+
+        <!-- HSV Sliders -->
+        <QWidget id='hsv' layout='QVBoxLayout()' padding='0,2,0,0'>
+          <ColorSlider id='hue' range='0,360'>
+            <Connect valueChanged='hueChanged'/>
+          </ColorSlider>
+          <ColorSlider id='saturation' range='0,100'>
+            <Connect valueChanged='saturationChanged'/>
+          </ColorSlider>
+          <ColorSlider id='brightness' range='0,100'>
+            <Connect valueChanged='brightnessChanged'/>
+          </ColorSlider>
+        </QWidget>
+
+        <!-- Opacity -->
+        <ColorSlider id='opacity' range='0,100'>
+          <Connect valueChanged='opacityChanged'/>
+        </ColorSlider>
+
+      </QWidget>
+    </QWidget>
+  </QWidget>
+</QWidget>
+
