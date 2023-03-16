@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import signal
-import qtinkwell
+import inkwell
 from argparse import ArgumentParser
-from colorpicker import APPNAME, STORAGEDIR, log
-from colorpicker.colorpicker import ColorPicker
+from colorpecker import APPNAME, STORAGEDIR, log
+from colorpecker.colorpecker import ColorPecker
 from os.path import normpath
 from PySide6 import QtWidgets
 from PySide6.QtCore import QSettings
@@ -15,12 +15,12 @@ class Application(QtWidgets.QApplication):
 
     def __init__(self, opts):
         super(Application, self).__init__()
-        qtinkwell.addApplicationFonts()                 # Add Inkwell fonts
-        qtinkwell.applyStyleSheet(self)                 # Apply Inkwell styles
+        inkwell.addApplicationFonts()                   # Add Inkwell fonts
+        inkwell.applyStyleSheet(self)                   # Apply Inkwell styles
         self.opts = opts                                # Command line options
         self.storage = self._initStorage()              # Setup settings storage
-        self.colorpicker = ColorPicker(hex='#F00')    # Main Colorpicker window
-        self.colorpicker.show()
+        self.colorpecker = ColorPecker(hex='#F00')    # Main window
+        self.colorpecker.show()
 
     def _initStorage(self):
         """ Create the storage object to get and save settings. """

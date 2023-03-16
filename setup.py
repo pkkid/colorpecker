@@ -1,6 +1,8 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
-from colorpicker import VERSION
+# python .\setup.py sdist
+# twine upload --repository pypi dist/*
+from colorpecker import VERSION
 from pkg_resources import parse_requirements
 from setuptools import setup
 
@@ -9,17 +11,17 @@ with open('requirements.txt') as handle:
     requirements = [str(req) for req in parse_requirements(handle)]
 
 setup(
-    name='colorpicker',
+    name='colorpecker',
     version=VERSION,
     description='Python based color picker written with PySide6 and QT.',
     author='Michael Shepanski',
     author_email='michael.shepanski@gmail.com',
-    url='https://github.com/pkkid/python-colorpicker',
-    packages=['colorpicker'],
+    url='https://github.com/pkkid/colorpecker',
+    packages=['colorpecker'],
     install_requires=requirements,
     python_requires='>=3.7',
     long_description=readme,
-    keywords=['colorpicker', 'color', 'picker', 'hex', 'hsv', 'rgb',
+    keywords=['colorpecker', 'color', 'picker', 'hex', 'hsv', 'rgb',
         'rgba', 'eyedropper', 'palette'],
     classifiers=[
         'Operating System :: OS Independent',

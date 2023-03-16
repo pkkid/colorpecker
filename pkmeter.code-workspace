@@ -1,0 +1,24 @@
+{
+	"folders": [
+		{
+			"name": "pkmeter",
+			"path": "pkmeter"
+		},
+		{
+			"name": "python-qtemplate",
+			"path": "python-qtemplate"
+		},
+		{
+			"name": "python-inkwell",
+			"path": "python-inkwell"
+		},
+		{
+			"path": "colorpecker"
+		}
+	],
+  "settings": {
+    "files.associations": {
+      "*manifest.json": "json5"
+    }
+  }
+}

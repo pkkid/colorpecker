@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
 import colorsys
 from os.path import dirname, normpath
-from colorpicker import log, utils  # noqa
+from colorpecker import log, utils  # noqa
 from qtemplate import QTemplateWidget
 
 RGB, HSV = 'rgb', 'hsv'     # Current slider mode
 
 
-class ColorPicker(QTemplateWidget):
-    TMPL = normpath(f'{dirname(__file__)}/colorpicker.tmpl')
+class ColorPecker(QTemplateWidget):
+    TMPL = normpath(f'{dirname(__file__)}/colorpecker.tmpl')
 
     def __init__(self, rgb=None, hsv=None, hex=None):
-        super(ColorPicker, self).__init__()
+        super(ColorPecker, self).__init__()
         self.rgba = (0,0,0,1.0)             # Current color in RGB
         self.mode = HSV                     # Current slider mode
         self._rgba = None                   # Last displayed rgba value
@@ -48,7 +48,7 @@ class ColorPicker(QTemplateWidget):
     def show(self):
         """ Show this settings window. """
         utils.centerWindow(self)
-        super(ColorPicker, self).show()
+        super(ColorPecker, self).show()
 
     def setRGB(self, rgba):
         """ Set the current rgb(a) value. """
