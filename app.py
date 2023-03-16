@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import signal
-import inkwell
 from argparse import ArgumentParser
 from colorpecker import APPNAME, STORAGEDIR, log
-from colorpecker.colorpecker import ColorPecker
+from colorpecker.colorpicker import ColorPicker
+from inkwell import inkwell
 from os.path import normpath
 from PySide6 import QtWidgets
 from PySide6.QtCore import QSettings
@@ -19,7 +19,7 @@ class Application(QtWidgets.QApplication):
         inkwell.applyStyleSheet(self)                   # Apply Inkwell styles
         self.opts = opts                                # Command line options
         self.storage = self._initStorage()              # Setup settings storage
-        self.colorpecker = ColorPecker(hex='#F00')    # Main window
+        self.colorpecker = ColorPicker(hex='#F00')    # Main window
         self.colorpecker.show()
 
     def _initStorage(self):

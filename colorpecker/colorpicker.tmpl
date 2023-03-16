@@ -1,13 +1,14 @@
 <QWidget layout='QVBoxLayout()' fixedWidth='450' padding='0'>
-  <StyleSheet args='resources/colorpicker.sass'/>
+  <StyleSheet args='colorpicker.sass'/>
   <Set attribute='Qt.WA_TranslucentBackground'/>
   <Set windowFlags='Qt.Dialog | Qt.FramelessWindowHint'/>
   <Set windowTitle='APPNAME+" Settings"'/>
   <QWidget id='colorpicker' class='appwindow' layout='QVBoxLayout()' padding='1' spacing='0'>
     
     <!-- TitleBar -->
-    <Draggable args='self' layout='QHBoxLayout()' padding='(10,10,10,0)'>
-      <QLabel text='Color Picker'/>
+    <Draggable args='self' layout='QHBoxLayout()' padding='(10,3,10,0)'>
+      <QWidget id='icon'/>
+      <QLabel id='title' text='Color Pecker'/>
       <Stretch/>
       <QPushButton text='󰅖' class='close'>
         <Connect clicked='close'/>

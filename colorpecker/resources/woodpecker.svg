@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="300"
+   height="300"
+   viewBox="0 0 79.374988 79.375016"
+   version="1.1"
+   id="svg5"
+   xml:space="preserve"
+   inkscape:version="1.2.2 (732a01da63, 2022-12-09)"
+   sodipodi:docname="woodpecker3.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"><sodipodi:namedview
+     id="namedview7"
+     pagecolor="#000000"
+     bordercolor="#000000"
+     borderopacity="0"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#0e0e0e"
+     inkscape:document-units="px"
+     showgrid="false"
+     inkscape:zoom="1.829812"
+     inkscape:cx="113.12638"
+     inkscape:cy="153.84094"
+     inkscape:window-width="1881"
+     inkscape:window-height="1116"
+     inkscape:window-x="765"
+     inkscape:window-y="86"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="g21" /><defs
+     id="defs2"><inkscape:path-effect
+       effect="fillet_chamfer"
+       id="path-effect3927"
+       is_visible="true"
+       lpeversion="1"
+       nodesatellites_param="F,0,0,1,0,71.966667,0,1 @ F,0,0,1,0,71.966667,0,1 @ F,0,0,1,0,71.966667,0,1 @ F,0,0,1,0,71.966667,0,1"
+       unit="pc"
+       method="auto"
+       mode="F"
+       radius="17"
+       chamfer_steps="1"
+       flexible="false"
+       use_knot_distance="true"
+       apply_no_radius="true"
+       apply_with_radius="true"
+       only_selected="false"
+       hide_knots="false" /></defs><g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-60.650456,-65.084934)"><g
+       style="clip-rule:evenodd;fill-rule:evenodd;stroke-miterlimit:2"
+       id="g36"
+       transform="matrix(0.26458333,0,0,0.26458333,-154.0384,-73.643071)"><g
+         id="g21"
+         transform="matrix(0.30809402,0,0,0.30809402,632.08979,334.87792)">
+        
+        
+        <path
+   d="m 1296.9619,877.0673 c -25.158,-7.03865 -42.8388,-31.3072 -70.2373,-44.17182 -35.5911,-16.74454 -58.7246,-19.05119 -103.8039,-23.29781 24.1998,-63.10128 181.289,-89.79822 174.0412,67.46963 z"
+   style="fill:#ffffff;fill-opacity:0.279793;stroke:#ffffff;stroke-width:1.43304;stroke-opacity:0"
+   id="path19" /><path
+   d="m 1330.2021,800.6641 c 5.92,66.435 9.39,259.039 -5.61,318.22 -23.21,91.23 -77.93,142.28 -147.42,179.36 l 158.08,128.9599 c 28.82,21.62 99.89,5.83 162.35,12.68 l -0.55,62.13 -863.53999,1.68 0.079,-63.97 481.59099,-1.27 c -3.95,-8.06 -61.75,-53.6 -74.77,-63.8 -12.88,-10.21 -27.405,-20.42 -40.276,-30.6299 -24.55803,-19.38 -17.53003,-20.74 -55.35303,-20.74 l -307.55996,0.08 c 12.555,-17.38 215.9629,-173.62 252.44395,-202.65 15.55501,-12.28 238.62504,-185.666 250.47504,-203.212 -14.77,-26.717 -46.51,-57.661 -85.6,-64.52 -35.06,-6.221 -109.04903,-0.558 -134.07903,-16.748 2.132,-20.178 -11.845,-11.325 50.851,-23.846 21.873,-4.387 42.16703,-8.295 63.72803,-12.522 54.48,-10.607 63.8,-23.527 102.25,-48.729 41.85,-27.276 66.73,-28.871 124.29,-28.791 49.19,0.079 108.57,-3.031 156.42,1.276 -22.82,25.76 -61.27,51.441 -87.8,77.042 z m -45.72,48.809 c 5.37,-103.361 -111.02,-85.815 -128.95,-44.343 33.4,2.791 50.54,4.307 76.91,15.312 20.3,8.455 33.4,24.405 52.04,29.031 z m -505.04699,423.331 281.02699,1.36 c 130.84,0 223.62,-102.09 223.7,-234.798 0.08,-77.201 3.16,-187.979 -127.92,-182.795 24.48,41.472 65.15,71.858 58.36,167.084 -5.14,71.698 -46.75,116.759 -81.34,145.229 -54.64,45.06 -105.02,41.47 -183.42503,41.47 -33.718,0 -84.25401,-7.57 -107.54806,10.05 -10.818,8.22 -22.8989,17.79 -30.9529,24.57 -14.292,12.04 -21.004,14.19 -31.901,27.83 z m 484.82699,165.0899 -133.92,-108.5399 c -18.87,-15.24 -38.77,-7.66 -69.17,-4.95 12.4,15.15 26.45,23.5299 42.64,36.6899 79.28,64.6 80.54,81.51 160.45,76.8 z"
+   style="fill:#e6e6e6;fill-opacity:1;stroke:none;stroke-opacity:1"
+   id="path13" />
+        
+        
+        
+    </g></g></g></svg>

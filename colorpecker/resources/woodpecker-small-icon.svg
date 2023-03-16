@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="16"
+   height="16"
+   viewBox="0 0 4.2333327 4.2333342"
+   version="1.1"
+   id="svg5"
+   xml:space="preserve"
+   inkscape:version="1.2.2 (732a01da63, 2022-12-09)"
+   sodipodi:docname="woodpecker-small-icon2.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"><sodipodi:namedview
+     id="namedview7"
+     pagecolor="#3e3e3e"
+     bordercolor="#000000"
+     borderopacity="0"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="true"
+     inkscape:deskcolor="#2b2b2b"
+     inkscape:document-units="px"
+     showgrid="false"
+     inkscape:zoom="14.638496"
+     inkscape:cx="11.95478"
+     inkscape:cy="7.0020854"
+     inkscape:window-width="1881"
+     inkscape:window-height="1116"
+     inkscape:window-x="734"
+     inkscape:window-y="75"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="g21" /><defs
+     id="defs2"><inkscape:path-effect
+       effect="fillet_chamfer"
+       id="path-effect15629"
+       is_visible="true"
+       lpeversion="1"
+       nodesatellites_param="F,0,0,1,0,160,0,1 @ F,0,0,1,0,160,0,1 @ F,0,0,1,0,160,0,1 @ F,0,0,1,0,160,0,1"
+       unit="pc"
+       method="auto"
+       mode="F"
+       radius="10"
+       chamfer_steps="1"
+       flexible="false"
+       use_knot_distance="true"
+       apply_no_radius="true"
+       apply_with_radius="true"
+       only_selected="false"
+       hide_knots="false" /><inkscape:path-effect
+       effect="fillet_chamfer"
+       id="path-effect3927"
+       is_visible="true"
+       lpeversion="1"
+       nodesatellites_param="F,0,0,1,0,71.966667,0,1 @ F,0,0,1,0,71.966667,0,1 @ F,0,0,1,0,71.966667,0,1 @ F,0,0,1,0,71.966667,0,1"
+       unit="pc"
+       method="auto"
+       mode="F"
+       radius="17"
+       chamfer_steps="1"
+       flexible="false"
+       use_knot_distance="true"
+       apply_no_radius="true"
+       apply_with_radius="true"
+       only_selected="false"
+       hide_knots="false" /></defs><g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-60.650456,-65.084934)"><g
+       style="clip-rule:evenodd;fill-rule:evenodd;stroke-miterlimit:2"
+       id="g36"
+       transform="matrix(0.26458333,0,0,0.26458333,-154.0384,-73.643071)"><g
+         id="g21"
+         transform="matrix(0.30809402,0,0,0.30809402,632.08979,334.87792)">
+        
+        
+        <path
+   d="m 620.97496,636.80848 c -2.43038,-0.67996 -4.13842,-3.02441 -6.78525,-4.2672 -3.43826,-1.61761 -5.67308,-1.84043 -10.02795,-2.25068 2.33783,-6.09589 17.51338,-8.67493 16.8132,6.51788 z"
+   style="fill:#ffffff;fill-opacity:0.279793;stroke:#ffffff;stroke-width:0.138438;stroke-opacity:0"
+   id="path19" /><path
+   id="path13"
+   style="fill:#b2b2b2;fill-opacity:1;stroke:none;stroke-width:0.0966048;stroke-opacity:1"
+   d="M 625.16001 621.77007 C 622.5541 621.79213 619.93508 621.86232 617.55909 621.85882 C 611.99853 621.85109 609.59521 622.00682 605.5523 624.64181 C 601.83787 627.07641 600.93222 628.3273 595.66921 629.35196 C 593.5863 629.76031 591.62672 630.13264 589.51367 630.55645 C 583.45697 631.76603 584.8066 630.91469 584.60065 632.86398 C 587.01866 634.42801 594.1714 633.87955 597.55834 634.48052 C 601.33462 635.14313 604.39804 638.13117 605.8249 640.71213 C 604.82391 642.19427 589.85996 653.89639 584.73378 657.90453 L 584.73378 660.16769 L 609.66656 660.16769 C 611.37291 657.75319 612.74691 654.77989 613.02009 650.96925 C 613.67604 641.76999 609.74292 638.83555 607.37804 634.82919 C 620.04097 634.32838 619.74684 645.02638 619.73984 652.48436 C 619.73819 655.21417 619.25371 657.77276 618.49098 660.16769 L 623.64489 660.16769 C 625.09397 654.45054 624.75565 635.84596 624.18374 629.42804 C 626.74666 626.95487 630.46132 624.47413 632.66583 621.98561 C 630.35457 621.77757 627.76591 621.748 625.16001 621.77007 z M 613.26733 626.70844 C 613.64114 626.69649 614.01273 626.71237 614.38306 626.75282 C 617.34568 627.07641 620.03092 629.15197 619.77153 634.14454 C 617.97082 633.69765 616.70548 632.15298 614.7444 631.33619 C 612.19695 630.27305 610.54124 630.12873 607.31465 629.85912 C 608.07245 628.10632 610.65066 626.79213 613.26733 626.70844 z " />
+        
+        
+        
+    </g></g></g></svg>
