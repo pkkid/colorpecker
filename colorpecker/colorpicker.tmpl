@@ -7,7 +7,7 @@
     
     <!-- TitleBar -->
     <Draggable args='self' layout='QHBoxLayout()' padding='(10,3,10,0)'>
-      <QWidget id='icon'/>
+      <QWidget id='appicon'/>
       <QLabel id='title' text='Color Pecker'/>
       <Stretch/>
       <QPushButton text='󰅖' class='close'>
@@ -29,10 +29,15 @@
         <QWidget id='options' layout='QHBoxLayout()' padding='0' spacing='10'>
           <QLineEdit id='hex' text='#000000'/>
           <Stretch/>
+          <QComboBox id='mode'>
+            <Connect currentIndexChanged='_modeChanged'/>
+            <Item args='HSV'/>
+            <Item args='RGB'/>
+          </QComboBox>
         </QWidget>
 
         <!-- HSV Sliders -->
-        <QWidget id='hsv' layout='QVBoxLayout()' padding='0,2,0,0'>
+        <QWidget id='HSV' layout='QVBoxLayout()' padding='0,2,0,0'>
           <ColorSlider id='h' range='0,360'>
             <Connect valueChanged='_hChanged'/>
           </ColorSlider>
@@ -41,6 +46,19 @@
           </ColorSlider>
           <ColorSlider id='v' range='0,100'>
             <Connect valueChanged='_vChanged'/>
+          </ColorSlider>
+        </QWidget>
+      
+        <!-- HSV Sliders -->
+        <QWidget id='RGB' layout='QVBoxLayout()' padding='0,2,0,0' visible='False'>
+          <ColorSlider id='r' range='0,255'>
+            <Connect valueChanged='_rChanged'/>
+          </ColorSlider>
+          <ColorSlider id='g' range='0,255'>
+            <Connect valueChanged='_gChanged'/>
+          </ColorSlider>
+          <ColorSlider id='b' range='0,255'>
+            <Connect valueChanged='_bChanged'/>
           </ColorSlider>
         </QWidget>
 

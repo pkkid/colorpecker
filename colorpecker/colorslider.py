@@ -21,8 +21,16 @@ class ColorSlider(QTemplateWidget):
 
     def __init__(self, *args, **kwargs):
         super(ColorSlider, self).__init__(*args, **kwargs)
-        self._value = None
+        self._value = None      # Internval value with scale applied
     
+    @property
+    def minValue(self):
+        return self.ids.spinbox.minimum()
+    
+    @property
+    def maxValue(self):
+        return self.ids.spinbox.maximum()
+
     @property
     def value(self):
         return self.ids.spinbox.value()
