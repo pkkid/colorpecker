@@ -4,7 +4,7 @@ import sys
 from os.path import dirname
 from PySide6.QtCore import QStandardPaths
 
-APPNAME = 'Color Picker'
+APPNAME = 'Color Pecker'
 ROOT = dirname(dirname(__file__))
 STORAGEDIR = QStandardPaths.writableLocation(QStandardPaths.AppDataLocation)
 VERSION = '1.0.0'

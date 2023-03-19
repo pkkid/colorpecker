@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
-import colorsys
 import re
 from colorpecker import log, utils  # noqa
 from os.path import dirname, normpath
 from PySide6 import QtCore, QtGui
 from qtemplate import QTemplateWidget
 
-RGB, HSV = 'RGB', 'HSV'  # Current slider mode
+RGB,HSV,HEX = 'RGB','HSV','HEX'
 REGEX_DEG = r'\s*(\d+)(?:\.\d+)?°?\s*'
 REGEX_NUM = r'\s*(\d+(?:\.\d+)?|%)(?:\s*%)?\s*'
 REGEX_H = r'[a-fA-F\d]'
@@ -18,34 +17,29 @@ REGEX_HEX = re.compile(rf'(?:#|0x)?({REGEX_H}{{8}}|{REGEX_H}{{6}}|{REGEX_H}{{3,8
 class ColorPicker(QTemplateWidget):
     TMPL = normpath(f'{dirname(__file__)}/colorpicker.tmpl')
 
-    def __init__(self, rgb=None, hsv=None, hex=None):
+    def __init__(self, colorStr=None):
         super(ColorPicker, self).__init__()
-        self.mode = HSV                     # Current slider mode
-        self.rgba = (0,0,0,1.0)             # Current color in RGB mode
-        self.hsva = (0,0,0,1.0)             # Current color in HSV mode
-        self._shiftrgba = None              # rgba value when shift pressed
-        self._updating = False              # Ignore other slider changes
-        if rgb: self.setRGB(rgb)            # RGB (0-255, 0-255, 0-255, {0-1})
-        elif hsv: self.setHSV(hsv)          # HSV (0-360, 0-100, 0-100, {0-1})
-        elif hex: self.setHex(hex)          # HEX #000000{00}-#FFFFFF{FF}
-        else: self.setRGB(self.rgba)        # Set default color
-    
-    @property
-    def hex(self):
-        return self.rgb2hex(self.rgba)[:7]
-    
-    @property
-    def hexa(self):
-        return self.rgb2hex(self.rgba)
-    
-    @property
-    def hsv(self):
-        return self.hsva[:3]
+        self.mode = HSV                         # Current slider mode
+        self.color = (0,100,100,1)              # Current color in self.mode format
+        self._shiftcolor = None                 # color value when shift pressed
+        self._updating = False                  # Ignore other slider changes
+        if colorStr: self.setColor(colorStr)    # Set the specfied color
+        else: self._updateUi(self.color)        # Update UI with default color
 
-    @property
-    def rgb(self):
-        return self.rgba[:3]
+    hex = property(lambda self: self.hexa[:7])
+    hexa = property(lambda self: utils.convert(self.color, self.mode, HEX))
+    hsv = property(lambda self: self.hsva[:3])
+    hsva = property(lambda self: utils.convert(self.color, self.mode, HSV))
+    rgb = property(lambda self: self.rgba[:3])
+    rgba = property(lambda self: utils.convert(self.color, self.mode, RGB))
     
+    setHex = lambda self, hex: self.setHexa(hex+'FF')
+    setHexa = lambda self, hexa: self._updateUi(utils.convert(hexa, HEX, self.mode))
+    setHsv = lambda self, hsv: self.setHsva(hsv+(1,))
+    setHsva = lambda self, hsva: self._updateUi(utils.convert(hsva, HSV, self.mode))
+    setRgb = lambda self, rgb: self.setRgba(rgb+(1,))
+    setRgba = lambda self, rgba: self._updateUi(utils.convert(rgba, RGB, self.mode))
+
     def show(self):
         """ Show this settings window. """
         utils.centerWindow(self)
@@ -59,31 +53,10 @@ class ColorPicker(QTemplateWidget):
             self.setHex(matches[0])
         elif matches := re.match(REGEX_RGB, text):
             self.setRGB(matches[0])
-
-    def setRGB(self, rgba):
-        """ Set the current rgb(a) value. """
-        if len(rgba) == 3:
-            rgba = rgba + (1.0,)
-        self._updateUi(rgba=rgba)
-
-    def setHSV(self, hsva):
-        """ Set the current hsv(a) value. """
-        if len(hsva) == 3:
-            hsva = hsva + (1.0,)
-        self._updateUi(hsva=hsva)
-
-    def setHex(self, hexa):
-        """ Set the current hex(a) value. ex: #abcdef """
-        try:
-            rgba = self.hex2rgb(hexa)
-            self._updateUi(rgba=rgba)
-        except Exception:
-            log.error(f'Unable to parse hex color "{hexa}"')
     
-    def setOpacity(self, opacity):
+    def setOpacity(self, a):
         """ Set the opacity from 0-1. """
-        rgba = self.rgba[:3] + (1.0,)
-        self._updateUi(rgba=rgba)
+        self._updateUi(self.color[:-1] + (a,))
     
     def keyPressEvent(self, event):
         if event.matches(QtGui.QKeySequence.Paste):
@@ -92,139 +65,151 @@ class ColorPicker(QTemplateWidget):
             if mimedata.hasText():
                 self.setColor(mimedata.text())
         if event.key() == QtCore.Qt.Key_Shift:
-            self._shiftrgba = self.rgba
+            self._shiftcolor = self.color
         super().keyPressEvent(event)
     
     def keyReleaseEvent(self, event):
         if event.key() == QtCore.Qt.Key_Shift:
-            self._shiftrgba = None
+            self._shiftcolor = None
         super().keyReleaseEvent(event)
 
     def _modeChanged(self, index):
         if self.loading: return
-        self.mode = self.ids.mode.itemText(index)
+        # Update sef.color format and self.mode
+        mode = self.ids.mode.itemText(index)
+        self.color = utils.convert(self.color, self.mode, mode)
+        self.mode = mode
+        # Display the correct sliders
         if self.mode == RGB:
             self.ids.HSV.setVisible(False)
             self.ids.RGB.setVisible(True)
         if self.mode == HSV:
             self.ids.RGB.setVisible(False)
             self.ids.HSV.setVisible(True)
-        self._updateUi(rgba=self.rgba)
+        self._updateUi(self.color)
+
+    def _rgbChanged(self, value):
+        i = 'rgb'.index(self.sender().objectName())
+        rgb = self.color[:i] + (value,) + self.color[i+1:-1]
+        srgb = self._shiftcolor
+        if srgb and srgb[i] != 0:
+            pct = round(1-((srgb[i]-rgb[i])/float(srgb[i])), 3)
+            print(pct)
+            rgb = tuple(min(max(x*pct, 0), 255) for x in rgb)
+        self._updateUi(rgb + (self.color[-1],))
 
     def _rChanged(self, r):
-        _,g,b,a = self.rgba
-        if self._shiftrgba:
-            sr,sg,sb = self._shiftrgba[:3]
-            pct = round(1-((sr-r)/float(sr)), 3)
-            g = min(max(sg*pct, 0), 255)
-            b = min(max(sb*pct, 0), 255)
-        self._updateUi(rgba=(r,g,b,a))
+        _,g,b,a = self.color
+        if self._shiftcolor:
+            sr,sg,sb = self._shiftcolor[:3]
+            if sr != 0:
+                pct = round(1-((sr-r)/float(sr)), 3)
+                g = min(max(sg*pct, 0), 255)
+                b = min(max(sb*pct, 0), 255)
+        self._updateUi((r,g,b,a))
 
     def _gChanged(self, g):
-        r,_,b,a = self.rgba
-        if self._shiftrgba:
-            sr,sg,sb = self._shiftrgba[:3]
-            pct = round(1-((sg-g)/float(sg)), 3)
-            r = min(max(sr*pct, 0), 255)
-            b = min(max(sb*pct, 0), 255)
-        self._updateUi(rgba=(r,g,b,a))
+        r,_,b,a = self.color
+        if self._shiftcolor:
+            sr,sg,sb = self._shiftcolor[:3]
+            if sg != 0:
+                pct = round(1-((sg-g)/float(sg)), 3)
+                r = min(max(sr*pct, 0), 255)
+                b = min(max(sb*pct, 0), 255)
+        self._updateUi((r,g,b,a))
 
     def _bChanged(self, b):
-        r,g,_,a = self.rgba
-        if self._shiftrgba:
-            sr,sg,sb = self._shiftrgba[:3]
-            pct = round(1-((sb-b)/float(sb)), 3)
-            r = min(max(sr*pct, 0), 255)
-            g = min(max(sg*pct, 0), 255)
-        self._updateUi(rgba=(r,g,b,a))
+        r,g,_,a = self.color
+        if self._shiftcolor:
+            sr,sg,sb = self._shiftcolor[:3]
+            if sb != 0:
+                pct = round(1-((sb-b)/float(sb)), 3)
+                r = min(max(sr*pct, 0), 255)
+                g = min(max(sg*pct, 0), 255)
+        self._updateUi((r,g,b,a))
 
     def _hChanged(self, h):
-        _,s,v,a = self.hsva
-        self._updateUi(hsva=(h,s,v,a))
+        print(self.sender().objectName())
+        _,s,v,a = self.color
+        self._updateUi((h,s,v,a))
 
     def _sChanged(self, s):
-        h,_,v,a = self.hsva
-        self._updateUi(hsva=(h,s,v,a))
+        h,_,v,a = self.color
+        self._updateUi((h,s,v,a))
 
     def _vChanged(self, v):
-        h,s,_,a = self.hsva
-        self._updateUi(hsva=(h,s,v,a))
+        h,s,_,a = self.color
+        self._updateUi((h,s,v,a))
 
     def _aChanged(self, a):
         a = round(a / 100, 3)
-        if self.mode == RGB:
-            r,g,b,_ = self.rgba
-            self._updateUi(rgba=(r,g,b,a))
-        if self.mode == HSV:
-            h,s,v,_ = self.hsva
-            self._updateUi(hsva=(h,s,v,a))
+        if self.mode in (RGB, HSV):
+            self._updateUi(self.color[:3]+(a,))
 
-    def _updateUi(self, rgba=None, hsva=None):
+    def _updateUi(self, color):
         if not self._updating:
             self._updating = True
-            update = getattr(self, f'_update{self.mode}')
-            update(rgba, hsva)
+            getattr(self, f'_update{self.mode}')(color)
             self._updating = False
     
-    def _updateRGB(self, rgba=None, hsva=None):
-        self.rgba = rgba if rgba else self.hsv2rgb(hsva)
-        # log.debug(f'_updateRGB{self.rgba}')
-        self._updateSwatch(rgba=self.rgba)
-        self._updateSlider('r', rgba=self.rgba)
-        self._updateSlider('g', rgba=self.rgba)
-        self._updateSlider('b', rgba=self.rgba)
-        self._updateOpacity(rgba=self.rgba)
-
-    def _updateHSV(self, rgba=None, hsva=None):
-        self.hsva = hsva if hsva else self.rgb2hsv(rgba)
-        # log.debug(f'_updateHSV{self.hsva}')
-        self._updateSwatch(hsva=self.hsva)
-        self._updateHue(hsva=self.hsva)
-        self._updateSlider('s', hsva=self.hsva)
-        self._updateSlider('v', hsva=self.hsva)
-        self._updateOpacity(hsva=self.hsva)
-
-    def _updateSwatch(self, rgba=None, hsva=None):
-        log.info(f'{rgba=} {hsva=}')
-        self.rgba = rgba if rgba else self.hsv2rgb(hsva)
-        hexa = self.rgb2hex(rgba) if rgba else self.hsv2hex(hsva)
-        style = f'background-color: rgba{self.rgba};'
-        self.ids.swatch.setStyleSheet(style)
-        self.ids.hex.setText(hexa)
+    def _updateRGB(self, color):
+        if self.mode != RGB:  # TODO: Can this be deleted?
+            convertor = f'{self.mode.lower()}2rgb'
+            color = getattr(self, convertor)(color)
+        self._updateSwatch(color)
+        self._updateSlider('r', color)
+        self._updateSlider('g', color)
+        self._updateSlider('b', color)
+        self._updateOpacity(color)
     
-    def _updateSlider(self, id, rgba=None, hsva=None):
+    def _updateHSV(self, color):
+        if self.mode != HSV:  # TODO: Can this be deleted?
+            convertor = f'{self.mode.lower()}2hsv'
+            color = getattr(self, convertor)(color)
+        self._updateSwatch(color)
+        self._updateHue(color)
+        self._updateSlider('s', color)
+        self._updateSlider('v', color)
+        self._updateOpacity(color)
+
+    def _updateSwatch(self, color):
+        self.color = color
+        self.ids.swatch.setStyleSheet(f'background-color: rgba{self.rgba};')
+        self.ids.hex.setText(self.hexa)
+    
+    def _updateSlider(self, id, color):
         """ Update the slider id given current rgba or hsva selection. """
         slider = self.ids[id]
         getColor = lambda c,i,v: c[:i]+(v,)+c[i+1:]
-        if hsva is not None:
-            getColor = lambda c,i,v: self.hsv2rgb(c[:i]+(v,)+c[i+1:])
-        c = rgba or hsva
-        i = 'rgb'.index(id) if rgba else 'hsv'.index(id)
-        slider.setValue(rgba[i] if rgba else hsva[i])
+        if self.mode != RGB:
+            convertor = getattr(utils, f'{self.mode.lower()}a2rgba')
+            getColor = lambda c,i,v: convertor(c[:i]+(v,)+c[i+1:])
+        i = self.mode.lower().index(id.lower())
+        slider.setValue(color[i])
         gradient = f"""#{id} QSlider {{
             background-color: qlineargradient(x1:0, x2:1,
-            stop:0 rgb{getColor(c, i, slider.minValue)[:3]},
-            stop:1 rgb{getColor(c, i, slider.maxValue)[:3]});
+            stop:0 rgb{getColor(color, i, slider.minValue)[:3]},
+            stop:1 rgb{getColor(color, i, slider.maxValue)[:3]});
         }}"""
         slider.setStyleSheet(gradient)
 
-    def _updateHue(self, hsva):
-        h,s,v,a = hsva
+    def _updateHue(self, color):
+        h,s,v,a = color
         self.ids.h.setValue(h)
         gradient = f"""#h QSlider {{
           background-color: qlineargradient(x1:0, x2:1,
-            stop:0 #{self.hsv2hex((0.0,s,v,a))},
-            stop:0.17 #{self.hsv2hex((61.2,s,v,a))},
-            stop:0.33 #{self.hsv2hex((118.8,s,v,a))},
-            stop:0.5 #{self.hsv2hex((180.0,s,v,a))},
-            stop:0.67 #{self.hsv2hex((241.2,s,v,a))},
-            stop:0.83 #{self.hsv2hex((298.8,s,v,a))},
-            stop:1 #{self.hsv2hex((360.0,s,v,a))});
+            stop:0 {utils.convert((0.0,s,v,a), self.mode, HEX)[:7]},
+            stop:0.17 {utils.convert((61.2,s,v,a), self.mode, HEX)[:7]},
+            stop:0.33 {utils.convert((118.8,s,v,a), self.mode, HEX)[:7]},
+            stop:0.5 {utils.convert((180.0,s,v,a), self.mode, HEX)[:7]},
+            stop:0.67 {utils.convert((241.2,s,v,a), self.mode, HEX)[:7]},
+            stop:0.83 {utils.convert((298.8,s,v,a), self.mode, HEX)[:7]},
+            stop:1 {utils.convert((360.0,s,v,a), self.mode, HEX)[:7]});
         }}"""
         self.ids.h.setStyleSheet(gradient)
-
-    def _updateOpacity(self, rgba=None, hsva=None):
-        r,g,b,a = rgba if rgba else self.hsv2rgb(hsva)
+    
+    def _updateOpacity(self, color):
+        r,g,b,a = utils.convert(color, self.mode, RGB)
         self.ids.a.setValue(round(a*100))
         gradient = f"""#a QSlider {{
           background-color: qlineargradient(x1:0, x2:1,
@@ -232,50 +217,3 @@ class ColorPicker(QTemplateWidget):
             stop:1 rgba({r},{g},{b},1));
         }}"""
         self.ids.a.setStyleSheet(gradient)
-    
-    @classmethod
-    def hex2rgb(cls, hexa):
-        """ Converts hexa to rgba. """
-        hexa = hexa.lstrip('#').upper()
-        if len(hexa) <= 2: hexa = f'{hexa}{"0"*(6-len(hexa))}FF'
-        if len(hexa) == 3: hexa = f'{hexa[0]*2}{hexa[1]*2}{hexa[2]*2}FF'
-        if len(hexa) == 4: hexa = f'{hexa[0]*2}{hexa[1]*2}{hexa[2]*2}{hexa[3]*2}'
-        if len(hexa) == 6: hexa = f'{hexa}FF'
-        if len(hexa) == 7: hexa = f'{hexa}F'
-        try:
-            r,g,b = (int(hexa[i:i+2], 16) for i in (0,2,4))
-            a = int(hexa[6:8], 16) / 255.0
-            return (r,g,b,a)
-        except Exception:
-            return (0,0,0,1.0)
-    
-    @classmethod
-    def hsv2hex(cls, hsva):
-        """ Convert hsva to hex (without the alpha channel). """
-        h,s,v,a = hsva
-        _rgb = colorsys.hsv_to_rgb(h/360.0, s/100.0, v/100.0)
-        r,g,b = (int(x*255) for x in _rgb)
-        return f'{r:02x}{g:02x}{b:02x}'.upper()
-
-    @classmethod
-    def hsv2rgb(cls, hsva):
-        """ Convert hsva to rgba. """
-        h,s,v,a = hsva
-        _rgb = colorsys.hsv_to_rgb(h/360.0, s/100.0, v/100.0)
-        r,g,b = (round(x*255,3) for x in _rgb)
-        return (r,g,b,a)
-    
-    @classmethod
-    def rgb2hex(cls, rgba):
-        """ Convert rgba to hsva. """
-        r,g,b,a = (int(x) for x in rgba)
-        a = int(round(a * 255))
-        return f'#{r:02x}{g:02x}{b:02x}{b:02x}'.upper()
-
-    @classmethod
-    def rgb2hsv(cls, rgba):
-        """ Convert rgba to hsva. """
-        r,g,b,a = rgba
-        h,s,v = colorsys.rgb_to_hsv(r/255.0, g/255.0, b/255.0)
-        h,s,v = (round(h*360,3), round(s*100,3), round(v*100,3))
-        return (h,s,v,a)
