@@ -1,12 +1,18 @@
 # -*- coding: utf-8 -*-
 import colorsys
+import re
 from colorpecker import log, utils  # noqa
-from colorpecker.utils import minmax
 from os.path import dirname, normpath
-from PySide6 import QtCore
+from PySide6 import QtCore, QtGui
 from qtemplate import QTemplateWidget
 
 RGB, HSV = 'RGB', 'HSV'  # Current slider mode
+REGEX_DEG = r'\s*(\d+)(?:\.\d+)?°?\s*'
+REGEX_NUM = r'\s*(\d+(?:\.\d+)?|%)(?:\s*%)?\s*'
+REGEX_H = r'[a-fA-F\d]'
+REGEX_RGB = re.compile(rf'rgba?\({REGEX_NUM},{REGEX_NUM},{REGEX_NUM}(?:,{REGEX_NUM})?\)')
+REGEX_HSV = re.compile(rf'hsva?\({REGEX_DEG},{REGEX_NUM},{REGEX_NUM}(?:,{REGEX_NUM})?\)')
+REGEX_HEX = re.compile(rf'(?:#|0x)?({REGEX_H}{{8}}|{REGEX_H}{{6}}|{REGEX_H}{{3,8}})')
 
 
 class ColorPicker(QTemplateWidget):
@@ -18,7 +24,7 @@ class ColorPicker(QTemplateWidget):
         self.rgba = (0,0,0,1.0)             # Current color in RGB mode
         self.hsva = (0,0,0,1.0)             # Current color in HSV mode
         self._shiftrgba = None              # rgba value when shift pressed
-        self._updating = False                # Ignore other slider changes
+        self._updating = False              # Ignore other slider changes
         if rgb: self.setRGB(rgb)            # RGB (0-255, 0-255, 0-255, {0-1})
         elif hsv: self.setHSV(hsv)          # HSV (0-360, 0-100, 0-100, {0-1})
         elif hex: self.setHex(hex)          # HEX #000000{00}-#FFFFFF{FF}
@@ -45,6 +51,15 @@ class ColorPicker(QTemplateWidget):
         utils.centerWindow(self)
         super(ColorPicker, self).show()
 
+    def setColor(self, text):
+        """ Try really hard to read the text format and set the color. """
+        if matches := re.match(REGEX_HEX, text):
+            self.setHex(matches[0])
+        elif matches := re.match(REGEX_HSV, text):
+            self.setHex(matches[0])
+        elif matches := re.match(REGEX_RGB, text):
+            self.setRGB(matches[0])
+
     def setRGB(self, rgba):
         """ Set the current rgb(a) value. """
         if len(rgba) == 3:
@@ -58,9 +73,12 @@ class ColorPicker(QTemplateWidget):
         self._updateUi(hsva=hsva)
 
     def setHex(self, hexa):
-        """ Set the current hex(a) value. """
-        rgba = self.hex2rgb(hexa)
-        self._updateUi(rgba=rgba)
+        """ Set the current hex(a) value. ex: #abcdef """
+        try:
+            rgba = self.hex2rgb(hexa)
+            self._updateUi(rgba=rgba)
+        except Exception:
+            log.error(f'Unable to parse hex color "{hexa}"')
     
     def setOpacity(self, opacity):
         """ Set the opacity from 0-1. """
@@ -68,6 +86,11 @@ class ColorPicker(QTemplateWidget):
         self._updateUi(rgba=rgba)
     
     def keyPressEvent(self, event):
+        if event.matches(QtGui.QKeySequence.Paste):
+            clipboard = QtGui.QClipboard()
+            mimedata = clipboard.mimeData()
+            if mimedata.hasText():
+                self.setColor(mimedata.text())
         if event.key() == QtCore.Qt.Key_Shift:
             self._shiftrgba = self.rgba
         super().keyPressEvent(event)
@@ -93,8 +116,8 @@ class ColorPicker(QTemplateWidget):
         if self._shiftrgba:
             sr,sg,sb = self._shiftrgba[:3]
             pct = round(1-((sr-r)/float(sr)), 3)
-            g = utils.minmax(sg*pct, 0, 255)
-            b = utils.minmax(sb*pct, 0, 255)
+            g = min(max(sg*pct, 0), 255)
+            b = min(max(sb*pct, 0), 255)
         self._updateUi(rgba=(r,g,b,a))
 
     def _gChanged(self, g):
@@ -102,8 +125,8 @@ class ColorPicker(QTemplateWidget):
         if self._shiftrgba:
             sr,sg,sb = self._shiftrgba[:3]
             pct = round(1-((sg-g)/float(sg)), 3)
-            r = utils.minmax(sr*pct, 0, 255)
-            b = utils.minmax(sb*pct, 0, 255)
+            r = min(max(sr*pct, 0), 255)
+            b = min(max(sb*pct, 0), 255)
         self._updateUi(rgba=(r,g,b,a))
 
     def _bChanged(self, b):
@@ -111,8 +134,8 @@ class ColorPicker(QTemplateWidget):
         if self._shiftrgba:
             sr,sg,sb = self._shiftrgba[:3]
             pct = round(1-((sb-b)/float(sb)), 3)
-            r = utils.minmax(sr*pct, 0, 255)
-            g = utils.minmax(sg*pct, 0, 255)
+            r = min(max(sr*pct, 0), 255)
+            g = min(max(sg*pct, 0), 255)
         self._updateUi(rgba=(r,g,b,a))
 
     def _hChanged(self, h):
@@ -162,10 +185,12 @@ class ColorPicker(QTemplateWidget):
         self._updateOpacity(hsva=self.hsva)
 
     def _updateSwatch(self, rgba=None, hsva=None):
+        log.info(f'{rgba=} {hsva=}')
         self.rgba = rgba if rgba else self.hsv2rgb(hsva)
+        hexa = self.rgb2hex(rgba) if rgba else self.hsv2hex(hsva)
         style = f'background-color: rgba{self.rgba};'
         self.ids.swatch.setStyleSheet(style)
-        self.ids.hex.setText(self.hex)
+        self.ids.hex.setText(hexa)
     
     def _updateSlider(self, id, rgba=None, hsva=None):
         """ Update the slider id given current rgba or hsva selection. """

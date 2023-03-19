@@ -10,7 +10,3 @@ def centerWindow(qobj):
     centerpos = screen.geometry().center()
     geometry.moveCenter(centerpos)
     qobj.move(geometry.topLeft())
-
-
-def minmax(value, minValue, maxValue):
-    return min(max(value, minValue), maxValue)
