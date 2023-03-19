@@ -21,7 +21,7 @@ class ColorPicker(QTemplateWidget):
         super(ColorPicker, self).__init__()
         self.mode = HSV                         # Current slider mode
         self.color = (0,100,100,1)              # Current color in self.mode format
-        self._shiftcolor = None                 # color value when shift pressed
+        self._shiftColor = None                 # color value when shift pressed
         self._updating = False                  # Ignore other slider changes
         if colorStr: self.setColor(colorStr)    # Set the specfied color
         else: self._updateUi(self.color)        # Update UI with default color
@@ -65,12 +65,12 @@ class ColorPicker(QTemplateWidget):
             if mimedata.hasText():
                 self.setColor(mimedata.text())
         if event.key() == QtCore.Qt.Key_Shift:
-            self._shiftcolor = self.color
+            self._shiftColor = self.color
         super().keyPressEvent(event)
     
     def keyReleaseEvent(self, event):
         if event.key() == QtCore.Qt.Key_Shift:
-            self._shiftcolor = None
+            self._shiftColor = None
         super().keyReleaseEvent(event)
 
     def _modeChanged(self, index):
@@ -89,62 +89,30 @@ class ColorPicker(QTemplateWidget):
         self._updateUi(self.color)
 
     def _rgbChanged(self, value):
-        i = 'rgb'.index(self.sender().objectName())
-        rgb = self.color[:i] + (value,) + self.color[i+1:-1]
-        srgb = self._shiftcolor
-        if srgb and srgb[i] != 0:
-            pct = round(1-((srgb[i]-rgb[i])/float(srgb[i])), 3)
-            print(pct)
-            rgb = tuple(min(max(x*pct, 0), 255) for x in rgb)
-        self._updateUi(rgb + (self.color[-1],))
+        id = self.sender().objectName().lower()
+        index = RGB.lower().index(id)
+        color = list(self.color)
+        color[index] = value
+        if self._shiftColor:
+            scolor = self._shiftColor
+            svalue = scolor[index]
+            if svalue != 0:
+                pct = round(1-((svalue-value)/float(svalue)), 3)
+                color = [min(max(sc*pct, 0), 255) for sc in scolor[:-1]] + [color[-1]]
+                color[index] = value
+        self._updateUi(tuple(color))
 
-    def _rChanged(self, r):
-        _,g,b,a = self.color
-        if self._shiftcolor:
-            sr,sg,sb = self._shiftcolor[:3]
-            if sr != 0:
-                pct = round(1-((sr-r)/float(sr)), 3)
-                g = min(max(sg*pct, 0), 255)
-                b = min(max(sb*pct, 0), 255)
-        self._updateUi((r,g,b,a))
-
-    def _gChanged(self, g):
-        r,_,b,a = self.color
-        if self._shiftcolor:
-            sr,sg,sb = self._shiftcolor[:3]
-            if sg != 0:
-                pct = round(1-((sg-g)/float(sg)), 3)
-                r = min(max(sr*pct, 0), 255)
-                b = min(max(sb*pct, 0), 255)
-        self._updateUi((r,g,b,a))
-
-    def _bChanged(self, b):
-        r,g,_,a = self.color
-        if self._shiftcolor:
-            sr,sg,sb = self._shiftcolor[:3]
-            if sb != 0:
-                pct = round(1-((sb-b)/float(sb)), 3)
-                r = min(max(sr*pct, 0), 255)
-                g = min(max(sg*pct, 0), 255)
-        self._updateUi((r,g,b,a))
-
-    def _hChanged(self, h):
-        print(self.sender().objectName())
-        _,s,v,a = self.color
-        self._updateUi((h,s,v,a))
-
-    def _sChanged(self, s):
-        h,_,v,a = self.color
-        self._updateUi((h,s,v,a))
-
-    def _vChanged(self, v):
-        h,s,_,a = self.color
-        self._updateUi((h,s,v,a))
+    def _hsvChanged(self, value):
+        id = self.sender().objectName().lower()
+        index = HSV.lower().index(id)
+        color = list(self.color)
+        color[index] = value
+        self._updateUi(tuple(color))
 
     def _aChanged(self, a):
         a = round(a / 100, 3)
         if self.mode in (RGB, HSV):
-            self._updateUi(self.color[:3]+(a,))
+            self._updateUi(self.color[:-1]+(a,))
 
     def _updateUi(self, color):
         if not self._updating:
