@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import signal
 from argparse import ArgumentParser
-from colorpecker import APPNAME, STORAGEDIR, log
+from colorpecker import APPNAME, STORAGEDIR, log, testing
 from colorpecker.colorpicker import ColorPicker
 from inkwell import inkwell
 from os.path import normpath
@@ -19,8 +19,9 @@ class Application(QtWidgets.QApplication):
         inkwell.applyStyleSheet(self)                   # Apply Inkwell styles
         self.opts = opts                                # Command line options
         self.storage = self._initStorage()              # Setup settings storage
-        self.colorpecker = ColorPicker()                # Main window
-        self.colorpecker.show()
+        self.colorpecker = ColorPicker('argb(100%, 0.146, 0.787, 0.785)')       # Main window
+        self.colorpecker.show()                         # Show the main window
+        if opts.test: testing.initTests()               # Init tests if requested
 
     def _initStorage(self):
         """ Create the storage object to get and save settings. """
@@ -41,10 +42,11 @@ class Application(QtWidgets.QApplication):
 if __name__ == '__main__':
     signal.signal(signal.SIGINT, signal.SIG_DFL)
     parser = ArgumentParser(description=f'{APPNAME} - Desktop System Monitor')
+    parser.add_argument('--test', action='store_true', help='Run color tests')
     parser.add_argument('--debug', action='store_true', help='Enable debug logging')
     parser.add_argument('--verbose', action='store_true', help='Even more verbose logging')
     parser.add_argument('--outline', action='store_true', help='Add outline to QWidgets')
     opts = parser.parse_args()
     if opts.debug: log.setLevel('DEBUG')
     if opts.verbose: QTemplateWidget.verbose = True
-    Application.start(opts)
+    app = Application.start(opts)

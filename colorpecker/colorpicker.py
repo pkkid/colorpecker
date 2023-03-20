@@ -1,29 +1,21 @@
 # -*- coding: utf-8 -*-
-import re
 from colorpecker import log, utils  # noqa
+from colorpecker.utils import HEX, HSV, RGB
 from os.path import dirname, normpath
 from PySide6 import QtCore, QtGui
 from qtemplate import QTemplateWidget
-
-RGB,HSV,HEX = 'RGB','HSV','HEX'
-REGEX_DEG = r'\s*(\d+)(?:\.\d+)?°?\s*'
-REGEX_NUM = r'\s*(\d+(?:\.\d+)?|%)(?:\s*%)?\s*'
-REGEX_H = r'[a-fA-F\d]'
-REGEX_RGB = re.compile(rf'rgba?\({REGEX_NUM},{REGEX_NUM},{REGEX_NUM}(?:,{REGEX_NUM})?\)')
-REGEX_HSV = re.compile(rf'hsva?\({REGEX_DEG},{REGEX_NUM},{REGEX_NUM}(?:,{REGEX_NUM})?\)')
-REGEX_HEX = re.compile(rf'(?:#|0x)?({REGEX_H}{{8}}|{REGEX_H}{{6}}|{REGEX_H}{{3,8}})')
 
 
 class ColorPicker(QTemplateWidget):
     TMPL = normpath(f'{dirname(__file__)}/colorpicker.tmpl')
 
-    def __init__(self, colorStr=None):
+    def __init__(self, color=None):
         super(ColorPicker, self).__init__()
         self.mode = HSV                         # Current slider mode
         self.color = (0,100,100,1)              # Current color in self.mode format
         self._shiftColor = None                 # color value when shift pressed
         self._updating = False                  # Ignore other slider changes
-        if colorStr: self.setColor(colorStr)    # Set the specfied color
+        if color: self.setColor(color)          # Set the specfied color
         else: self._updateUi(self.color)        # Update UI with default color
 
     hex = property(lambda self: self.hexa[:7])
@@ -32,13 +24,11 @@ class ColorPicker(QTemplateWidget):
     hsva = property(lambda self: utils.convert(self.color, self.mode, HSV))
     rgb = property(lambda self: self.rgba[:3])
     rgba = property(lambda self: utils.convert(self.color, self.mode, RGB))
+    opacity = property(lambda self: self.color[-1])
     
-    setHex = lambda self, hex: self.setHexa(hex+'FF')
-    setHexa = lambda self, hexa: self._updateUi(utils.convert(hexa, HEX, self.mode))
-    setHsv = lambda self, hsv: self.setHsva(hsv+(1,))
-    setHsva = lambda self, hsva: self._updateUi(utils.convert(hsva, HSV, self.mode))
-    setRgb = lambda self, rgb: self.setRgba(rgb+(1,))
-    setRgba = lambda self, rgba: self._updateUi(utils.convert(rgba, RGB, self.mode))
+    # setHex = lambda self, hex: self.setHexa(hex)
+    # setHsv = lambda self, hsv: self.setHsva(hsv)
+    # setRgb = lambda self, rgb: self.setRgba(rgb)
 
     def show(self):
         """ Show this settings window. """
@@ -47,13 +37,13 @@ class ColorPicker(QTemplateWidget):
 
     def setColor(self, text):
         """ Try really hard to read the text format and set the color. """
-        if matches := re.match(REGEX_HEX, text):
-            self.setHex(matches[0])
-        elif matches := re.match(REGEX_HSV, text):
-            self.setHex(matches[0])
-        elif matches := re.match(REGEX_RGB, text):
-            self.setRGB(matches[0])
-    
+        try:
+            mode, color = utils.text2color(text)
+            color = utils.convert(color, mode, self.mode)
+            self._updateUi(color)
+        except Exception:
+            raise Exception(f'Unable to parse color {text}')
+
     def setOpacity(self, a):
         """ Set the opacity from 0-1. """
         self._updateUi(self.color[:-1] + (a,))
@@ -76,21 +66,21 @@ class ColorPicker(QTemplateWidget):
     def _modeChanged(self, index):
         if self.loading: return
         # Update sef.color format and self.mode
-        mode = self.ids.mode.itemText(index)
+        mode = self.ids.mode.itemText(index).lower()
         self.color = utils.convert(self.color, self.mode, mode)
         self.mode = mode
         # Display the correct sliders
         if self.mode == RGB:
-            self.ids.HSV.setVisible(False)
-            self.ids.RGB.setVisible(True)
+            self.ids.hsv.setVisible(False)
+            self.ids.rgb.setVisible(True)
         if self.mode == HSV:
-            self.ids.RGB.setVisible(False)
-            self.ids.HSV.setVisible(True)
+            self.ids.rgb.setVisible(False)
+            self.ids.hsv.setVisible(True)
         self._updateUi(self.color)
 
     def _rgbChanged(self, value):
         id = self.sender().objectName().lower()
-        index = RGB.lower().index(id)
+        index = RGB.index(id)
         color = list(self.color)
         color[index] = value
         if self._shiftColor:
@@ -104,7 +94,7 @@ class ColorPicker(QTemplateWidget):
 
     def _hsvChanged(self, value):
         id = self.sender().objectName().lower()
-        index = HSV.lower().index(id)
+        index = HSV.index(id)
         color = list(self.color)
         color[index] = value
         self._updateUi(tuple(color))
@@ -117,10 +107,11 @@ class ColorPicker(QTemplateWidget):
     def _updateUi(self, color):
         if not self._updating:
             self._updating = True
-            getattr(self, f'_update{self.mode}')(color)
+            funcname = f'_update{self.mode.title()}'
+            getattr(self, funcname)(color)
             self._updating = False
     
-    def _updateRGB(self, color):
+    def _updateRgb(self, color):
         if self.mode != RGB:  # TODO: Can this be deleted?
             convertor = f'{self.mode.lower()}2rgb'
             color = getattr(self, convertor)(color)
@@ -130,7 +121,7 @@ class ColorPicker(QTemplateWidget):
         self._updateSlider('b', color)
         self._updateOpacity(color)
     
-    def _updateHSV(self, color):
+    def _updateHsv(self, color):
         if self.mode != HSV:  # TODO: Can this be deleted?
             convertor = f'{self.mode.lower()}2hsv'
             color = getattr(self, convertor)(color)
@@ -143,16 +134,17 @@ class ColorPicker(QTemplateWidget):
     def _updateSwatch(self, color):
         self.color = color
         self.ids.swatch.setStyleSheet(f'background-color: rgba{self.rgba};')
-        self.ids.hex.setText(self.hexa)
+        if self.opacity == 1: self.ids.hex.setText(self.hex)
+        else: self.ids.hex.setText(self.hexa)
     
     def _updateSlider(self, id, color):
         """ Update the slider id given current rgba or hsva selection. """
         slider = self.ids[id]
         getColor = lambda c,i,v: c[:i]+(v,)+c[i+1:]
         if self.mode != RGB:
-            convertor = getattr(utils, f'{self.mode.lower()}a2rgba')
-            getColor = lambda c,i,v: convertor(c[:i]+(v,)+c[i+1:])
-        i = self.mode.lower().index(id.lower())
+            convert = getattr(utils, f'{self.mode.lower()}a2rgba')
+            getColor = lambda c,i,v: convert(c[:i]+(v,)+c[i+1:])
+        i = self.mode.index(id.lower())
         slider.setValue(color[i])
         gradient = f"""#{id} QSlider {{
             background-color: qlineargradient(x1:0, x2:1,

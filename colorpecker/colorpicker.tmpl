@@ -38,29 +38,17 @@
         </QWidget>
 
         <!-- HSV Sliders -->
-        <QWidget id='HSV' layout='QVBoxLayout()' padding='0,2,0,0'>
-          <ColorSlider id='h' range='0,360'>
-            <Connect valueChanged='_hsvChanged'/>
-          </ColorSlider>
-          <ColorSlider id='s' range='0,100'>
-            <Connect valueChanged='_hsvChanged'/>
-          </ColorSlider>
-          <ColorSlider id='v' range='0,100'>
-            <Connect valueChanged='_hsvChanged'/>
-          </ColorSlider>
+        <QWidget id='hsv' layout='QVBoxLayout()' padding='0,2,0,0'>
+          <ColorSlider id='h' range='0,360'><Connect valueChanged='_hsvChanged'/></ColorSlider>
+          <ColorSlider id='s' range='0,100'><Connect valueChanged='_hsvChanged'/></ColorSlider>
+          <ColorSlider id='v' range='0,100'><Connect valueChanged='_hsvChanged'/></ColorSlider>
         </QWidget>
       
         <!-- HSV Sliders -->
-        <QWidget id='RGB' layout='QVBoxLayout()' padding='0,2,0,0' visible='False'>
-          <ColorSlider id='r' range='0,255'>
-            <Connect valueChanged='_rgbChanged'/>
-          </ColorSlider>
-          <ColorSlider id='g' range='0,255'>
-            <Connect valueChanged='_rgbChanged'/>
-          </ColorSlider>
-          <ColorSlider id='b' range='0,255'>
-            <Connect valueChanged='_rgbChanged'/>
-          </ColorSlider>
+        <QWidget id='rgb' layout='QVBoxLayout()' padding='0,2,0,0' visible='False'>
+          <ColorSlider id='r' range='0,255'><Connect valueChanged='_rgbChanged'/></ColorSlider>
+          <ColorSlider id='g' range='0,255'><Connect valueChanged='_rgbChanged'/></ColorSlider>
+          <ColorSlider id='b' range='0,255'><Connect valueChanged='_rgbChanged'/></ColorSlider>
         </QWidget>
 
         <!-- Opacity -->
