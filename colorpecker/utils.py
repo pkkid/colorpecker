@@ -15,8 +15,6 @@ REGEX_RGBA = re.compile(rf'{START}rgba?\(?{R}{NUM}{DELIM}{G}{NUM}{DELIM}{B}{NUM}
 REGEX_HSVA = re.compile(rf'{START}hsva?\({DEG}{DELIM}{NUM}{DELIM}{NUM}(?:{DELIM}{NUM})? *\){END}', re.I)
 REGEX_HEXA = re.compile(rf'{START}(?:#|0x)?([a-f\d]{1,8}){END}', re.I)
 
-print(REGEX_ARGB.pattern)
-
 
 def centerWindow(qobj):
     """ Move the specified widget to the center of the screen. """
