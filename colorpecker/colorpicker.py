@@ -30,6 +30,9 @@ class ColorPicker(QTemplateWidget):
     # setHsv = lambda self, hsv: self.setHsva(hsv)
     # setRgb = lambda self, rgb: self.setRgba(rgb)
 
+    def __str__(self):
+        return f'{self.mode}{self.color}'
+
     def show(self):
         """ Show this settings window. """
         utils.centerWindow(self)
@@ -108,6 +111,7 @@ class ColorPicker(QTemplateWidget):
         if not self._updating:
             self._updating = True
             funcname = f'_update{self.mode.title()}'
+            log.debug(f'_updateUi({self.mode}{color})')
             getattr(self, funcname)(color)
             self._updating = False
     

@@ -104,16 +104,15 @@ def text2rgba(text):
     # At this point all rgba values are floats. We make a best guess at the number range
     # used for rgba values. Unfortunatly for the alpha value, we have less data to go by.
     # This application uses the color range from 0-255.
-    log.debug(f'{pct=} {gt1=} {gt100=}')
     for i in range(3):
         if gt100: pass                                           # rgb 0-255
         elif pct: rgba[i] = round((rgba[i] / 100.0) * 255, 3)    # rgb 0-100
         elif gt1: rgba[i] = round((rgba[i] / 100.0) * 255, 3)    # rgb 0-100
         else: rgba[i] = round(rgba[i] * 255, 3)                  # rgb 0-1
-    # For the alpha channel we use 0-100 and we can't use the hints above.a
-    if rgba[3] > 100: rgba[3] = round((rgba[3] / 255.0) * 100, 3)   # alpha 0-255
-    if rgba[3] < 1: rgba[3] = round(rgba[3] * 100, 3)               # alpha 0-1
-    log.info(f'  result: {rgba}')
+    # For the alpha channel we use 0-1 and we can't use the hints above.
+    if rgba[3] > 100: rgba[3] = round(rgba[3] / 255.0, 3)   # alpha 0-255
+    if rgba[3] > 1: rgba[3] = round(rgba[3] / 100, 3)       # alpha 0-1
+    log.info(f'  result: rgba{tuple(rgba)}')
     return tuple(rgba)
 
 
