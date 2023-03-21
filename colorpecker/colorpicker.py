@@ -7,7 +7,7 @@ from qtemplate import QTemplateWidget
 
 
 class ColorPicker(QTemplateWidget):
-    TMPL = normpath(f'{dirname(__file__)}/colorpicker.tmpl')
+    TMPL = normpath(f'{dirname(__file__)}/resources/colorpicker.tmpl')
 
     def __init__(self, color=None):
         super(ColorPicker, self).__init__()
@@ -25,10 +25,6 @@ class ColorPicker(QTemplateWidget):
     rgb = property(lambda self: self.rgba[:3])
     rgba = property(lambda self: utils.convert(self.color, self.mode, RGB))
     opacity = property(lambda self: self.color[-1])
-    
-    # setHex = lambda self, hex: self.setHexa(hex)
-    # setHsv = lambda self, hsv: self.setHsva(hsv)
-    # setRgb = lambda self, rgb: self.setRgba(rgb)
 
     def __str__(self):
         return f'{self.mode}{self.color}'
@@ -116,9 +112,6 @@ class ColorPicker(QTemplateWidget):
             self._updating = False
     
     def _updateRgb(self, color):
-        if self.mode != RGB:  # TODO: Can this be deleted?
-            convertor = f'{self.mode.lower()}2rgb'
-            color = getattr(self, convertor)(color)
         self._updateSwatch(color)
         self._updateSlider('r', color)
         self._updateSlider('g', color)
@@ -126,9 +119,6 @@ class ColorPicker(QTemplateWidget):
         self._updateOpacity(color)
     
     def _updateHsv(self, color):
-        if self.mode != HSV:  # TODO: Can this be deleted?
-            convertor = f'{self.mode.lower()}2hsv'
-            color = getattr(self, convertor)(color)
         self._updateSwatch(color)
         self._updateHue(color)
         self._updateSlider('s', color)
