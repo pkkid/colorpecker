@@ -24,11 +24,11 @@ class ColorSlider(QTemplateWidget):
         self._value = None      # Internval value with scale applied
     
     @property
-    def minValue(self):
+    def min(self):
         return self.ids.spinbox.minimum()
     
     @property
-    def maxValue(self):
+    def max(self):
         return self.ids.spinbox.maximum()
 
     @property

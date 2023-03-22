@@ -19,7 +19,7 @@ class Application(QtWidgets.QApplication):
         inkwell.applyStyleSheet(self)                   # Apply Inkwell styles
         self.opts = opts                                # Command line options
         self.storage = self._initStorage()              # Setup settings storage
-        self.colorpecker = ColorPicker('argb(100%, 0.146, 0.787, 0.785)')       # Main window
+        self.colorpecker = ColorPicker()                # Main window
         self.colorpecker.show()                         # Show the main window
         if opts.test: testing.initTests()               # Init tests if requested
 

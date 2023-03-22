@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import colorsys
 import re
 import sys
 from colorpecker import log
@@ -112,50 +111,3 @@ def text2rgba(text):
     if rgba[3] > 1: rgba[3] = round(rgba[3] / 100, 3)       # alpha 0-1
     log.info(f'  result: rgba{tuple(rgba)}')
     return tuple(rgba)
-
-
-def text2hsva(text):
-    pass
-
-
-def hexa2rgba(hexa):
-    """ Converts hexa to rgba. """
-    if hexa.startswith('#'): hexa = hexa[1:]
-    if hexa.startswith('0x'): hexa = hexa[2:]
-    if len(hexa) == 6: hexa += 'ff'
-    r,g,b,a = (int(hexa[i:i+2], 16) for i in (0,2,4,6))
-    a = round(a / 255.0, 3)
-    return (r,g,b,a)
-
-
-def hexa2hsva(hexa):
-    """ Converts hexa to hsva. """
-    return rgba2hsva(hexa2rgba(hexa))
-
-
-def hsva2hexa(hsva):
-    """ Convert hsva to hexa. """
-    return rgba2hexa(hsva2rgba(hsva))
-
-
-def hsva2rgba(hsva):
-    """ Convert hsva to rgba. """
-    h,s,v,a = hsva
-    r,g,b = colorsys.hsv_to_rgb(h/360.0, s/100.0, v/100.0)
-    r,g,b = (round(x*255,3) for x in (r,g,b))
-    return (r,g,b,a)
-
-
-def rgba2hexa(rgba):
-    """ Convert rgba to hsva. """
-    r,g,b,a = (int(x) for x in rgba)
-    a = int(round(a * 255))
-    return f'#{r:02x}{g:02x}{b:02x}{b:02x}'.upper()
-
-
-def rgba2hsva(rgba):
-    """ Convert rgba to hsva. """
-    r,g,b,a = rgba
-    h,s,v = colorsys.rgb_to_hsv(r/255.0, g/255.0, b/255.0)
-    h,s,v = (round(h*360,3), round(s*100,3), round(v*100,3))
-    return (h,s,v,a)
