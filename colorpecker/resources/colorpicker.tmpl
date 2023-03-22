@@ -1,9 +1,11 @@
-<QWidget layout='QVBoxLayout()' fixedWidth='450' padding='0'>
+<QWidget layout='QVBoxLayout()' fixedWidth='490' padding='0'>
   <StyleSheet args='colorpicker.sass'/>
   <Set attribute='Qt.WA_TranslucentBackground'/>
   <Set windowFlags='Qt.Dialog | Qt.FramelessWindowHint'/>
   <Set windowTitle='APPNAME+" Settings"'/>
   <QWidget id='colorpicker' class='appwindow' layout='QVBoxLayout()' padding='1' spacing='0'>
+    <Set sizePolicy='QSizePolicy.Minimum, QSizePolicy.Minimum'/>
+    <DropShadow args='(0,5,20,128)'/>
     
     <!-- TitleBar -->
     <Draggable args='self' layout='QHBoxLayout()' padding='(10,3,10,0)'>
@@ -18,8 +20,10 @@
     <QWidget layout='QHBoxLayout()' padding='10,4,10,10' spacing='15'>
 
       <!--Current Color -->
-      <QWidget id='swatchbg' layout='QVBoxLayout()' padding='0'>
-        <QWidget id='swatch'/>
+      <QWidget layout='QVBoxLayout()' padding='0'>
+        <QWidget id='swatchbg' layout='QVBoxLayout()' padding='0'>
+          <QWidget id='swatch'/>
+        </QWidget>
       </QWidget>
       
       <!-- Selection Options -->
@@ -32,25 +36,42 @@
           <QPushButton text='󰈊'/>
           <QComboBox id='mode'>
             <Connect currentIndexChanged='_modeChanged'/>
-            <Item args='HSV'/>
             <Item args='RGB'/>
+            <Item args='HSL'/>
+            <Item args='HSV'/>
+            <Item args='CMYK'/>
           </QComboBox>
         </QWidget>
 
-        <!-- HSV Sliders -->
-        <QWidget id='hsv' layout='QVBoxLayout()' padding='0,2,0,0'>
-          <ColorSlider id='h' range='0,360'><Connect valueChanged='_hsvChanged'/></ColorSlider>
-          <ColorSlider id='s' range='0,100'><Connect valueChanged='_hsvChanged'/></ColorSlider>
-          <ColorSlider id='v' range='0,100'><Connect valueChanged='_hsvChanged'/></ColorSlider>
-        </QWidget>
-      
-        <!-- HSV Sliders -->
-        <QWidget id='rgb' layout='QVBoxLayout()' padding='0,2,0,0' visible='False'>
-          <ColorSlider id='r' range='0,255'><Connect valueChanged='_rgbChanged'/></ColorSlider>
-          <ColorSlider id='g' range='0,255'><Connect valueChanged='_rgbChanged'/></ColorSlider>
-          <ColorSlider id='b' range='0,255'><Connect valueChanged='_rgbChanged'/></ColorSlider>
+        <!-- RGB Sliders -->
+        <QWidget id='rgb' layout='QVBoxLayout()' padding='0,2,0,0' visible='True'>
+          <ColorSlider id='rgb_r' range='0,255'><Connect valueChanged='_rgbChanged'/></ColorSlider>
+          <ColorSlider id='rgb_g' range='0,255'><Connect valueChanged='_rgbChanged'/></ColorSlider>
+          <ColorSlider id='rgb_b' range='0,255'><Connect valueChanged='_rgbChanged'/></ColorSlider>
         </QWidget>
 
+        <!-- HSL Sliders -->
+        <QWidget id='hsl' layout='QVBoxLayout()' padding='0,2,0,0' visible='False'>
+          <ColorSlider id='hsl_h' range='0,360'><Connect valueChanged='_hslChanged'/></ColorSlider>
+          <ColorSlider id='hsl_s' range='0,100'><Connect valueChanged='_hslChanged'/></ColorSlider>
+          <ColorSlider id='hsl_l' range='0,100'><Connect valueChanged='_hslChanged'/></ColorSlider>
+        </QWidget>
+
+        <!-- HSV Sliders -->
+        <QWidget id='hsv' layout='QVBoxLayout()' padding='0,2,0,0' visible='False'>
+          <ColorSlider id='hsv_h' range='0,360'><Connect valueChanged='_hsvChanged'/></ColorSlider>
+          <ColorSlider id='hsv_s' range='0,100'><Connect valueChanged='_hsvChanged'/></ColorSlider>
+          <ColorSlider id='hsv_v' range='0,100'><Connect valueChanged='_hsvChanged'/></ColorSlider>
+        </QWidget>
+
+        <!-- CMYK Sliders -->
+        <QWidget id='cmyk' layout='QVBoxLayout()' padding='0,2,0,0' visible='False'>
+          <ColorSlider id='cmyk_c' range='0,100'><Connect valueChanged='_cmykChanged'/></ColorSlider>
+          <ColorSlider id='cmyk_m' range='0,100'><Connect valueChanged='_cmykChanged'/></ColorSlider>
+          <ColorSlider id='cmyk_y' range='0,100'><Connect valueChanged='_cmykChanged'/></ColorSlider>
+          <ColorSlider id='cmyk_k' range='0,100'><Connect valueChanged='_cmykChanged'/></ColorSlider>
+        </QWidget>
+      
         <!-- Opacity -->
         <ColorSlider id='a' range='0,100' value='100'>
           <Connect valueChanged='_aChanged'/>

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from colorpecker import log, utils  # noqa
-from colorpecker.color import RgbColor, RGB, HSV
+from colorpecker.color import RgbColor
+from colorpecker.color import RGB, HSL, HSV, CMYK
 from os.path import dirname, normpath
 from PySide6 import QtCore, QtGui
 from qtemplate import QTemplateWidget
@@ -11,7 +12,7 @@ class ColorPicker(QTemplateWidget):
 
     def __init__(self, color=None):
         super(ColorPicker, self).__init__()
-        self.mode = HSV                 # Current slider mode
+        self.mode = RGB                 # Current slider mode
         self.color = None               # Current color in self.mode format
         self._shiftColor = None         # color value when shift pressed
         self._updating = False          # Ignore other slider changes
@@ -62,22 +63,26 @@ class ColorPicker(QTemplateWidget):
         if not self.loading:
             self.mode = self.ids.mode.itemText(index).lower()
             self.ids.rgb.setVisible(False)
+            self.ids.hsl.setVisible(False)
             self.ids.hsv.setVisible(False)
+            self.ids.cmyk.setVisible(False)
             self.ids[self.mode].setVisible(True)
+            self.updateGeometry()
+            self.adjustSize()
             self._updateSliderValues()
             self._updateDisplay()
 
     def _rgbChanged(self, value):
         """ Called when an rgb slider value has changed. """
         if not self._updating:
-            r = self.ids.r.value / float(self.ids.r.max)
-            g = self.ids.g.value / float(self.ids.g.max)
-            b = self.ids.b.value / float(self.ids.b.max)
+            r = self.ids.rgb_r.value / float(self.ids.rgb_r.max)
+            g = self.ids.rgb_g.value / float(self.ids.rgb_g.max)
+            b = self.ids.rgb_b.value / float(self.ids.rgb_b.max)
             a = self.ids.a.value / float(self.ids.a.max)
             # If shift pressed, change the brightness
             if self._shiftColor:
                 slider = self.sender()
-                id = slider.objectName().lower()
+                id = slider.objectName().lower()[-1]
                 value = round(value / float(slider.max), 3)
                 svalue = getattr(self._shiftColor, id)
                 if svalue > 0:
@@ -89,14 +94,35 @@ class ColorPicker(QTemplateWidget):
                 self._updateSliderValues()
             self._updateDisplay()
 
+    def _hslChanged(self, value):
+        """ Called when an hsl slider value has changed. """
+        if not self._updating:
+            h = self.ids.hsl_h.value / float(self.ids.hsl_h.max)
+            s = self.ids.hsl_s.value / float(self.ids.hsl_s.max)
+            l = self.ids.hsl_l.value / float(self.ids.hsl_l.max)
+            a = self.ids.a.value / float(self.ids.a.max)
+            self.color = RgbColor.fromHsl(h,s,l,a)
+            self._updateDisplay()
+
     def _hsvChanged(self, value):
         """ Called when an hsv slider value has changed. """
         if not self._updating:
-            h = self.ids.h.value / float(self.ids.h.max)
-            s = self.ids.s.value / float(self.ids.s.max)
-            v = self.ids.v.value / float(self.ids.v.max)
+            h = self.ids.hsv_h.value / float(self.ids.hsv_h.max)
+            s = self.ids.hsv_s.value / float(self.ids.hsv_s.max)
+            v = self.ids.hsv_v.value / float(self.ids.hsv_v.max)
             a = self.ids.a.value / float(self.ids.a.max)
             self.color = RgbColor.fromHsv(h,s,v,a)
+            self._updateDisplay()
+        
+    def _cmykChanged(self, value):
+        """ Called when an hsv slider value has changed. """
+        if not self._updating:
+            c = self.ids.cmyk_c.value / float(self.ids.cmyk_c.max)
+            m = self.ids.cmyk_m.value / float(self.ids.cmyk_m.max)
+            y = self.ids.cmyk_y.value / float(self.ids.cmyk_y.max)
+            k = self.ids.cmyk_k.value / float(self.ids.cmyk_k.max)
+            a = self.ids.a.value / float(self.ids.a.max)
+            self.color = RgbColor.fromCmyk(c,m,y,k,a)
             self._updateDisplay()
 
     def _aChanged(self, a):
@@ -110,38 +136,40 @@ class ColorPicker(QTemplateWidget):
             color outside of using the sliders.
         """
         if not self._updating:
-            log.debug(f'_updateSliderValues({self.color})')
             self._updating = True
-            if self.mode == RGB:
-                self.ids.r.setValue(round(self.color.r*255))
-                self.ids.g.setValue(round(self.color.g*255))
-                self.ids.b.setValue(round(self.color.b*255))
-            if self.mode == HSV:
-                self.ids.h.setValue(round(self.color.h*360))
-                self.ids.s.setValue(round(self.color.s*255))
-                self.ids.v.setValue(round(self.color.v*255))
+            for id in self.mode:
+                slider = self.ids[f'{self.mode}_{id}']
+                slider.setValue(round(getattr(self.color, id)*slider.max))
             self.ids.a.setValue(round(self.color.a*100))
             self._updating = False
 
     def _updateDisplay(self):
         """ Update the swatch, text display, and slider background gradients. """
         if not self._updating:
-            log.debug(f'_updateDisplay({self.color})')
             self._updateSwatchDisplay()
             self._updateTextDisplay()
             self._updateOpacityDisplay()
             if self.mode == RGB:
-                self._updateSliderDisplay('r', mode=RGB)
-                self._updateSliderDisplay('g', mode=RGB)
-                self._updateSliderDisplay('b', mode=RGB)
+                self._updateSliderDisplay('r')
+                self._updateSliderDisplay('g')
+                self._updateSliderDisplay('b')
+            if self.mode == HSL:
+                self._updateHueDisplay()
+                self._updateSliderDisplay('s')
+                self._updateLightnessDisplay()
             if self.mode == HSV:
                 self._updateHueDisplay()
-                self._updateSliderDisplay('s', mode=HSV)
-                self._updateSliderDisplay('v', mode=HSV)
+                self._updateSliderDisplay('s')
+                self._updateSliderDisplay('v')
+            if self.mode == CMYK:
+                self._updateSliderDisplay('c')
+                self._updateSliderDisplay('m')
+                self._updateSliderDisplay('y')
+                self._updateSliderDisplay('k')
 
     def _updateSwatchDisplay(self):
         """ Update the swatch display. """
-        r,g,b = (x*255 for x in self.color.rgb)
+        r,g,b = (round(x*255) for x in self.color.rgb)
         style = f'background-color: rgba({r},{g},{b},{self.color.a});'
         self.ids.swatch.setStyleSheet(style)
     
@@ -151,18 +179,19 @@ class ColorPicker(QTemplateWidget):
             case 1: self.ids.hex.setText(self.color.hex)
             case _: self.ids.hex.setText(self.color.hexa)
     
-    def _updateSliderDisplay(self, id, mode=RGB):
+    def _updateSliderDisplay(self, id):
         """ Update the slider id given current rgba or hsva selection. """
-        gradient = f"""#{id} QSlider {{
+        gradient = f"""#{self.mode}_{id} QSlider {{
             background-color: qlineargradient(x1:0, x2:1,
             stop:0 {self.color.swap(id, 0).hex},
             stop:1 {self.color.swap(id, 1).hex});
         }}"""
-        self.ids[id].setStyleSheet(gradient)
+        slider = self.ids[f'{self.mode}_{id}']
+        slider.setStyleSheet(gradient)
 
     def _updateHueDisplay(self):
         """ Update the hue background gradient. """
-        gradient = f"""#h QSlider {{
+        gradient = f"""#{self.mode}_h QSlider {{
           background-color: qlineargradient(x1:0, x2:1,
             stop:0 {self.color.swap('h',0).hex},
             stop:0.17 {self.color.swap('h',0.166).hex},
@@ -172,11 +201,21 @@ class ColorPicker(QTemplateWidget):
             stop:0.83 {self.color.swap('h',0.833).hex},
             stop:1 {self.color.swap('h',1).hex});
         }}"""
-        self.ids.h.setStyleSheet(gradient)
+        slider = self.ids[f'{self.mode}_h']
+        slider.setStyleSheet(gradient)
+    
+    def _updateLightnessDisplay(self):
+        gradient = f"""#hsl_l QSlider {{
+          background-color: qlineargradient(x1:0, x2:1,
+            stop:0 {self.color.swap('l',0).hex},
+            stop:0.5 {self.color.swap('l',0.5).hex},
+            stop:1 {self.color.swap('l',1).hex});
+        }}"""
+        self.ids.hsl_l.setStyleSheet(gradient)
     
     def _updateOpacityDisplay(self):
         """ Update the opacity background gradient. """
-        r,g,b = (x*255 for x in self.color.rgb)
+        r,g,b = (round(x*255) for x in self.color.rgb)
         gradient = f"""#a QSlider {{
         background-color: qlineargradient(x1:0, x2:1,
             stop:0 rgba({r},{g},{b},0),
