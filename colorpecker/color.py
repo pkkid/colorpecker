@@ -41,6 +41,7 @@ class RgbColor:
     @property
     def cmyk(self):
         k = 1-max(self.rgb)
+        if k == 1: return 0,0,0,1
         c = (1-self.r-k)/(1-float(k))
         m = (1-self.g-k)/(1-float(k))
         y = (1-self.b-k)/(1-float(k))
