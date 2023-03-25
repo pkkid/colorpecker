@@ -1,8 +1,11 @@
 //--------------------------
 // ColorPecker
 //--------------------------
-#colorpicker {
+$dimtext: #9f9b96;
+$text: #c5c0ba;
 
+#colorpicker {
+  
   #appicon {
     min-width: 16px; max-width: 16px;
     min-height: 16px; max-height: 16px;
@@ -20,10 +23,30 @@
   }
   
   #hex {
+    background-color: rgba(0,0,0,0);
+    color: $dimtext;
+    font-size: 14px;
     max-width: 70px;
     min-width: 70px;
+    padding-left: 0px;
+    padding-right: 0px;
+    padding: 0px;
+  }
+  #eyedropBtn {
+    background-color: rgba(0,0,0,0);
+    color: $dimtext;
+    font-size: 18px;
+    padding: 0px;
+    &:hover {
+      color: $text;
+    }
   }
   
+  QComboBox {
+    color: $dimtext;
+    padding: 0px;
+  }
+
   #a #sliderbg {
     background-image: url('$dir/../images/checkerboard.png');
     min-height: 16px;
@@ -31,7 +54,6 @@
     border-radius: 8px;
     border: 2px solid #222222;
   }
-  
   QSlider {
     height: 16px;
     background-color: #333333;
@@ -52,6 +74,15 @@
       height: 12px;
       width: 12px;
     }
+  }
+  QSpinBox {
+    background-color: rgba(0,0,0,0);
+    color: $dimtext;
+    font-size: 14px;
+    max-width: 35px;
+    min-width: 35px;
+    padding-left: 0px;
+    padding-right: 0px;
   }
 }
 

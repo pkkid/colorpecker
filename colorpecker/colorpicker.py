@@ -200,8 +200,8 @@ class ColorPicker(QTemplateWidget):
     def _updateTextDisplay(self):
         """ Update the text color display. """
         match self.color.a:
-            case 1: self.ids.hex.setText(self.color.hex)
-            case _: self.ids.hex.setText(self.color.hexa)
+            case 1: self.ids.hex.setText(self.color.hex.upper())
+            case _: self.ids.hex.setText(self.color.hexa.upper())
     
     def _updateSliderDisplay(self, id):
         """ Update the slider id given current rgba or hsva selection. """

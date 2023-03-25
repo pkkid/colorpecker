@@ -31,18 +31,19 @@
         
         <!-- Toolbar -->
         <QWidget id='options' layout='QHBoxLayout()' padding='0' spacing='10'>
-          <QLineEdit id='hex' text='#000000'/>
-          <Stretch/>
           <QPushButton id='eyedropBtn' text='󰈊'>
             <Connect clicked='_eyedropClicked'/>
           </QPushButton>
+          <QLineEdit id='hex' text='#000000'/>
+          <Stretch/>
           <QComboBox id='mode'>
             <Connect currentIndexChanged='_modeChanged'/>
             <Item args='RGB'/>
             <Item args='HSL'/>
             <Item args='HSV'/>
-            <Item args='CMYK'/>
+            <!-- <Item args='CMYK'/> -->
           </QComboBox>
+          
         </QWidget>
 
         <!-- RGB Sliders -->

@@ -13,6 +13,7 @@ class ColorSlider(QTemplateWidget):
           </QSlider>
         </QWidget>
         <QSpinBox id='spinbox' fixedWidth='60'>
+          <Set buttonSymbols='QSpinBox.NoButtons'/>
           <Connect valueChanged='setValue'/>
         </QSpinBox>
       </QWidget>
