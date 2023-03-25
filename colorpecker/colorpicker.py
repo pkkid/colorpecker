@@ -17,6 +17,7 @@ class ColorPicker(QTemplateWidget):
         self.color = None               # Current color in self.mode format
         self._magnifier = None          # Magnifier window
         self._shiftColor = None         # color value when shift pressed
+        self._eyedropColor = None       # color value when eyedrop opened
         self._updating = False          # Ignore other slider changes
         self.setColor(color)            # Set the specfied color
 
@@ -60,12 +61,27 @@ class ColorPicker(QTemplateWidget):
             self._shiftColor = None
         super().keyReleaseEvent(event)
 
-    def _eyedropperClicked(self):
+    def _eyedropClicked(self):
         """ Show the eyedropper manginfier. """
         log.info('show')
         if not self._magnifier:
             self._magnifier = Magnifier()
+            self._magnifier.colorChanged.connect(self._eyedropColorChanged)
+            self._magnifier.cancelled.connect(self._eyedropCancelled)
+        self._eyedropColor = self.color
         self._magnifier.show()
+    
+    def _eyedropColorChanged(self, qcolor):
+        rgb = tuple(round(x/255.0,3) for x in qcolor.getRgb())
+        self.color = RgbColor(*rgb)
+        self._updateSliderValues()
+        self._updateDisplay()
+    
+    def _eyedropCancelled(self):
+        """ Called when the eyedrop color selection was cancelled. """
+        self.color = self._eyedropColor
+        self._updateSliderValues()
+        self._updateDisplay()
 
     def _modeChanged(self, index):
         """ Called when the color mode has changed. """
