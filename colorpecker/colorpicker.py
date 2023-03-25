@@ -2,6 +2,7 @@
 from colorpecker import log, utils  # noqa
 from colorpecker.color import RgbColor
 from colorpecker.color import RGB, HSL, HSV, CMYK
+from colorpecker.magnifier import Magnifier
 from os.path import dirname, normpath
 from PySide6 import QtCore, QtGui
 from qtemplate import QTemplateWidget
@@ -14,6 +15,7 @@ class ColorPicker(QTemplateWidget):
         super(ColorPicker, self).__init__()
         self.mode = RGB                 # Current slider mode
         self.color = None               # Current color in self.mode format
+        self._magnifier = None          # Magnifier window
         self._shiftColor = None         # color value when shift pressed
         self._updating = False          # Ignore other slider changes
         self.setColor(color)            # Set the specfied color
@@ -57,6 +59,13 @@ class ColorPicker(QTemplateWidget):
         if event.key() == QtCore.Qt.Key_Shift:
             self._shiftColor = None
         super().keyReleaseEvent(event)
+
+    def _eyedropperClicked(self):
+        """ Show the eyedropper manginfier. """
+        log.info('show')
+        if not self._magnifier:
+            self._magnifier = Magnifier()
+        self._magnifier.show()
 
     def _modeChanged(self, index):
         """ Called when the color mode has changed. """

@@ -2,7 +2,7 @@
   <StyleSheet args='colorpicker.sass'/>
   <Set attribute='Qt.WA_TranslucentBackground'/>
   <Set windowFlags='Qt.Dialog | Qt.FramelessWindowHint'/>
-  <Set windowTitle='APPNAME+" Settings"'/>
+  <Set windowTitle='Color Pecker Settings"'/>
   <QWidget id='colorpicker' class='appwindow' layout='QVBoxLayout()' padding='1' spacing='0'>
     <Set sizePolicy='QSizePolicy.Minimum, QSizePolicy.Minimum'/>
     <DropShadow args='(0,5,20,128)'/>
@@ -33,7 +33,9 @@
         <QWidget id='options' layout='QHBoxLayout()' padding='0' spacing='10'>
           <QLineEdit id='hex' text='#000000'/>
           <Stretch/>
-          <QPushButton text='󰈊'/>
+          <QPushButton id='eyedropperBtn' text='󰈊'>
+            <Connect clicked='_eyedropperClicked'/>
+          </QPushButton>
           <QComboBox id='mode'>
             <Connect currentIndexChanged='_modeChanged'/>
             <Item args='RGB'/>
