@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from colorpecker import log
+from colorpecker import log  # noqa
 from os.path import dirname
 from PySide6 import QtCore, QtGui, QtWidgets
 from qtemplate import QTemplateWidget
@@ -33,9 +33,11 @@ class Magnifier(QTemplateWidget):
         self.border = border                        # Magnifier border-width
         self.radius = radius                        # Magnifier border-radius
         self.qcolor = None                          # Current qcolor
-        self.zsize = size*zoom                      # Size of zoomed in screenshot
-        self.fsize = self.zsize+self.border*2       # Fill size of magnifier
+        self._zsize = size*zoom                     # Size of zoomed in screenshot
+        self._fsize = self._zsize+self.border*2     # Fill size of magnifier
         self._screenshots = None                    # Holds desktop screenshots
+        self._fadein = QtCore.QPropertyAnimation(self, b'windowOpacity')
+        self._fadeout = QtCore.QPropertyAnimation(self, b'windowOpacity')
         self.setWindowOpacity(0.0)
     
     def show(self):
@@ -47,32 +49,44 @@ class Magnifier(QTemplateWidget):
         self._updateDisplay()
     
     def showEvent(self, event):
-        self.animation = QtCore.QPropertyAnimation(self, b'windowOpacity')
-        self.animation.setDuration(200)
-        self.animation.setStartValue(0.0)
-        self.animation.setEndValue(1.0)
-        self.animation.start()
+        self._fadein.setDuration(200)
+        self._fadein.setStartValue(0.0)
+        self._fadein.setEndValue(1.0)
+        self._fadein.start()
     
     def close(self):
-        self.animation = QtCore.QPropertyAnimation(self, b'windowOpacity')
-        self.animation.setDuration(200)
-        self.animation.setStartValue(1.0)
-        self.animation.setEndValue(0.0)
-        self.animation.finished.connect(super(Magnifier, self).close)
-        self.animation.start()
+        self._fadeout.setDuration(200)
+        self._fadeout.setStartValue(1.0)
+        self._fadeout.setEndValue(0.0)
+        self._fadeout.finished.connect(super(Magnifier, self).close)
+        self._fadeout.start()
     
     def keyPressEvent(self, event):
         """ When shift is pressed, we save the color to help with calculating
             a full brightness color change. When ctrl+v is pressed, we read the
             clipboard and attempt to load the specified color from text.
         """
-        if event.key() == QtCore.Qt.Key_Escape:
-            self.cancelled.emit()
-            self.close()
+        pos = QtGui.QCursor.pos()
+        match event.key():
+            case QtCore.Qt.Key_Left:
+                QtGui.QCursor.setPos(pos.x()-1, pos.y())
+            case QtCore.Qt.Key_Right:
+                QtGui.QCursor.setPos(pos.x()+1, pos.y())
+            case QtCore.Qt.Key_Up:
+                QtGui.QCursor.setPos(pos.x(), pos.y()-1)
+            case QtCore.Qt.Key_Down:
+                QtGui.QCursor.setPos(pos.x(), pos.y()+1)
+            case QtCore.Qt.Key_Return:
+                self.colorChanged.emit(self.qcolor)
+                self.close()
+            case QtCore.Qt.Key_Escape:
+                self.cancelled.emit()
+                self.close()
     
     def mouseMoveEvent(self, event):
         # Take a screenshot of what's under the QWidget
-        self._updateDisplay()
+        if not self._fadeout.state() == QtCore.QPropertyAnimation.Running:
+            self._updateDisplay()
     
     def mouseReleaseEvent(self, event):
         """ Grab the color or cancel. """
@@ -90,7 +104,7 @@ class Magnifier(QTemplateWidget):
     
     def _setMagnifierSize(self):
         """ Set the magnifier size based on self.size, and self.width. """
-        self.ids.magnifier.setFixedSize(self.fsize, self.fsize)
+        self.ids.magnifier.setFixedSize(self._fsize, self._fsize)
     
     def _updateTargets(self):
         """ Move and resize the target squares in the center of the magnifier. """
@@ -117,9 +131,9 @@ class Magnifier(QTemplateWidget):
         zoomed = cropped.scaled(cropped.width()*self.zoom, cropped.height()*self.zoom)
         # Crop zoomed pixmap to have rounded corners
         path = QtGui.QPainterPath()
-        rect = QtCore.QRectF(self.border, self.border, self.zsize, self.zsize)
+        rect = QtCore.QRectF(self.border, self.border, self._zsize, self._zsize)
         path.addRoundedRect(rect, self.radius*0.6, self.radius*0.6)
-        rounded = QtGui.QPixmap(self.fsize, self.fsize)
+        rounded = QtGui.QPixmap(self._fsize, self._fsize)
         rounded.fill(QtCore.Qt.transparent)
         painter = QtGui.QPainter(rounded)
         painter.setClipPath(path)
