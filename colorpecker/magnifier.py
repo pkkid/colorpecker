@@ -36,6 +36,7 @@ class Magnifier(QTemplateWidget):
         self.zsize = size*zoom                      # Size of zoomed in screenshot
         self.fsize = self.zsize+self.border*2       # Fill size of magnifier
         self._screenshots = None                    # Holds desktop screenshots
+        self.setWindowOpacity(0.0)
     
     def show(self):
         """ Initialize the magnifier when first displayed. """
@@ -44,6 +45,21 @@ class Magnifier(QTemplateWidget):
         self._updateTargets()
         super(Magnifier, self).show()
         self._updateDisplay()
+    
+    def showEvent(self, event):
+        self.animation = QtCore.QPropertyAnimation(self, b'windowOpacity')
+        self.animation.setDuration(200)
+        self.animation.setStartValue(0.0)
+        self.animation.setEndValue(1.0)
+        self.animation.start()
+    
+    def close(self):
+        self.animation = QtCore.QPropertyAnimation(self, b'windowOpacity')
+        self.animation.setDuration(200)
+        self.animation.setStartValue(1.0)
+        self.animation.setEndValue(0.0)
+        self.animation.finished.connect(super(Magnifier, self).close)
+        self.animation.start()
     
     def keyPressEvent(self, event):
         """ When shift is pressed, we save the color to help with calculating
