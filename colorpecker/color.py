@@ -1,10 +1,24 @@
 # -*- coding: utf-8 -*-
+import re
 import colorsys
+from colorpecker import log  # noqa
 
 RGB = 'rgb'
 HSL = 'hsl'
 HSV = 'hsv'
 CMYK = 'cmyk'
+
+# Regex to try parsing string to colors
+_DELIM = r' *[, ]'
+_R,_G,_B = (rf'(?: *(?:{c[0]}|{c})? *[:= ])?' for c in ('red','green','blue'))
+_NUM,_DEG = (rf' *((?:\.\d+|\d+\.?\d*){c}?)' for c in '%°')
+REGEX_ARGB = re.compile(rf'argb\({_NUM}{_DELIM}{_R}{_NUM}{_DELIM}{_G}{_NUM}{_DELIM}{_B}{_NUM} *\)', re.I)
+REGEX_RGB = re.compile(rf'rgba?\(?{_R}{_NUM}{_DELIM}{_G}{_NUM}{_DELIM}{_B}{_NUM}(?:{_DELIM}{_NUM})? *\)?', re.I)
+REGEX_HSL = re.compile(rf'hsla?\({_DEG}{_DELIM}{_NUM}{_DELIM}{_NUM}(?:{_DELIM}{_NUM})? *\)', re.I)
+REGEX_HSV = re.compile(rf'hsva?\({_DEG}{_DELIM}{_NUM}{_DELIM}{_NUM}(?:{_DELIM}{_NUM})? *\)', re.I)
+REGEX_HEX = re.compile(r'((?:#|0x)[a-f\d]{3,8})', re.I)
+
+print(REGEX_HSL.pattern)
 
 
 class RgbColor:
@@ -71,7 +85,7 @@ class RgbColor:
         g = round((1-m)*(1-k), 3)
         b = round((1-y)*(1-k), 3)
         return cls(r,g,b,a)
-
+            
     @classmethod
     def fromHsl(cls, h,s,l,a=1):
         """ Creates an RgbColor from hsl values. Note: The swapped s & l
@@ -88,6 +102,90 @@ class RgbColor:
     def fromRgb(cls, r,g,b,a=1):
         """ Convenience function to create an RgbColor. """
         return cls(r,g,b,a)
+    
+    @classmethod
+    def fromHex(cls, text):
+        """ Create an RgbColor from a hex string. """
+        if matches := re.findall(REGEX_HEX, text):
+            hexa = matches[0]
+            log.info(f'Parsing hex color {hexa}')
+            if hexa.startswith('#'): hexa = hexa[1:]
+            if hexa.startswith('0x'): hexa = hexa[2:]
+            match len(hexa):
+                case 3: hexa = f'#{hexa[0]*2}{hexa[1]*2}{hexa[2]*2}ff'
+                case 4: hexa = f'#{hexa[0]*2}{hexa[1]*2}{hexa[2]*2}{hexa[3]*2}'
+                case 5: hexa = f'#{hexa}0ff'
+                case 6: hexa = f'#{hexa}ff'
+                case 7: hexa = f'#{hexa}f'
+                case 8: hexa = f'#{hexa}'
+            return cls(*tuple(int(hexa[i:i+2], 16) for i in (0,2,4,6)))
+        raise Exception(f'Invalid hex string: {text}')
+    
+    @classmethod
+    def fromHslText(cls, text):
+        """ Creates an RgbColor from an hsl string. """
+        if matches := re.findall(REGEX_HSL, text):
+            log.info(f'Parsing hsl color {text}')
+            h = text2num(matches[0][0], scale=360, default=0)
+            s = text2num(matches[0][1], scale=100, default=0)
+            l = text2num(matches[0][2], scale=100, default=0)
+            a = text2num(matches[0][3], scale=1, default=1)
+            return RgbColor.fromHsl(h,s,l,a)
+        raise Exception(f'Invalid hsl string: {text}')
+    
+    @classmethod
+    def fromHsvText(cls, text):
+        """ Creates an RgbColor from an hsv string. """
+        if matches := re.findall(REGEX_HSV, text):
+            log.info(f'Parsing hsv color {text}')
+            h = text2num(matches[0][0], scale=360, default=0)
+            s = text2num(matches[0][1], scale=100, default=0)
+            v = text2num(matches[0][2], scale=100, default=0)
+            a = text2num(matches[0][3], scale=1, default=1)
+            return RgbColor.fromHsv(h,s,v,a)
+        raise Exception(f'Invalid hsv string: {text}')
+    
+    @classmethod
+    def fromRgbText(cls, text):
+        """ Creates an RgbColor from an rgb string. """
+        if matches := re.findall(REGEX_RGB, text):
+            log.info(f'Parsing rgb color {text}')
+            rgb = (text2num(x,255) for x in matches[0][0:3])
+            a = text2num(matches[0][3], scale=1, default=1)
+            return RgbColor(*rgb, a=a)
+        raise Exception(f'Invalid rgb string: {text}')
+
+    @classmethod
+    def fromText(cls, text):
+        """ Creates an RgbColor from a string. """
+        # Order matters here! We are specifically checking color profiles
+        # that are harder to match first, then getting more leanient in what
+        # we allow as we make it futher to the end.
+        funcs = (cls.fromHslText, cls.fromHsvText, cls.fromRgbText, cls.fromHex)
+        for func in funcs:
+            try:
+                return func(text)
+            except Exception:
+                pass  # try the next method
+        raise Exception(f'Invalid color string: {text}')
+
+
+def text2num(text, scale=None, default=0):
+    """ Converts a simple text string to number. For example:
+        Percent examples: 100%=1; 59%=.59; 9%=0.09
+        Degree examples: 360°=1; 180°=0.5; 12°=0.03
+    """
+    if text == '': return default
+    # Check we can extract the scale from a suffix
+    if text.endswith('%'): text, scale = text[:-1], 100
+    if text.endswith('°'): text, scale = text[:-1], 360
+    # Convert text to float guess the scale if not set
+    value = float(text)
+    if scale is None and value > 100: scale = 255
+    elif scale is None and value > 1: scale = 100
+    elif scale is None: scale = 1
+    # Return value 0-1
+    return round(value / float(scale), 3)
 
 
 if __name__ == '__main__':

@@ -33,9 +33,10 @@ class ColorPicker(QTemplateWidget):
         """ Try really hard to read the text format and set the color. """
         try:
             if isinstance(color, str):
-                mode, color = utils.text2color(color)
-                color = utils.convert(color, mode, self.mode)
-            self.color = color or RgbColor(1,0,0)
+                color = RgbColor.fromText(color)
+            if isinstance(color, (tuple, list)):
+                color = RgbColor(*color)
+            self.color = color
             self._updateSliderValues()
             self._updateDisplay()
         except Exception:
