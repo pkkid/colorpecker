@@ -16,9 +16,9 @@ REGEX_ARGB = re.compile(rf'argb\({_NUM}{_DELIM}{_R}{_NUM}{_DELIM}{_G}{_NUM}{_DEL
 REGEX_RGB = re.compile(rf'rgba?\(?{_R}{_NUM}{_DELIM}{_G}{_NUM}{_DELIM}{_B}{_NUM}(?:{_DELIM}{_NUM})? *\)?', re.I)
 REGEX_HSL = re.compile(rf'hsla?\({_DEG}{_DELIM}{_NUM}{_DELIM}{_NUM}(?:{_DELIM}{_NUM})? *\)', re.I)
 REGEX_HSV = re.compile(rf'hsva?\({_DEG}{_DELIM}{_NUM}{_DELIM}{_NUM}(?:{_DELIM}{_NUM})? *\)', re.I)
-REGEX_HEX = re.compile(r'((?:#|0x)[a-f\d]{3,8})', re.I)
-
-print(REGEX_HSL.pattern)
+REGEX_HEX = re.compile(r'((?:\#|0x)[a-f\d]{3,8})', re.I)
+                         
+print(REGEX_HEX.pattern)
 
 
 class RgbColor:
@@ -107,18 +107,19 @@ class RgbColor:
     def fromHex(cls, text):
         """ Create an RgbColor from a hex string. """
         if matches := re.findall(REGEX_HEX, text):
-            hexa = matches[0]
+            hexa = matches[0].lower()
             log.info(f'Parsing hex color {hexa}')
             if hexa.startswith('#'): hexa = hexa[1:]
             if hexa.startswith('0x'): hexa = hexa[2:]
             match len(hexa):
-                case 3: hexa = f'#{hexa[0]*2}{hexa[1]*2}{hexa[2]*2}ff'
-                case 4: hexa = f'#{hexa[0]*2}{hexa[1]*2}{hexa[2]*2}{hexa[3]*2}'
-                case 5: hexa = f'#{hexa}0ff'
-                case 6: hexa = f'#{hexa}ff'
-                case 7: hexa = f'#{hexa}f'
-                case 8: hexa = f'#{hexa}'
-            return cls(*tuple(int(hexa[i:i+2], 16) for i in (0,2,4,6)))
+                case 3: hexa = f'{hexa[0]*2}{hexa[1]*2}{hexa[2]*2}ff'
+                case 4: hexa = f'{hexa[0]*2}{hexa[1]*2}{hexa[2]*2}{hexa[3]*2}'
+                case 5: hexa = f'{hexa}0ff'
+                case 6: hexa = f'{hexa}ff'
+                case 7: hexa = f'{hexa}f'
+                case 8: hexa = f'{hexa}'
+            rgba = (int(hexa[i:i+2], 16) for i in (0,2,4,6))
+            return cls(*(round(x/255.0,3) for x in rgba))
         raise Exception(f'Invalid hex string: {text}')
     
     @classmethod
