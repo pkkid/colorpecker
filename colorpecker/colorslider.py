@@ -14,6 +14,7 @@ class ColorSlider(QTemplateWidget):
         </QWidget>
         <QSpinBox id='spinbox' fixedWidth='60'>
           <Set buttonSymbols='QSpinBox.NoButtons'/>
+          <Set contextMenuPolicy='Qt.NoContextMenu'/>
           <Connect valueChanged='setValue'/>
         </QSpinBox>
       </QWidget>

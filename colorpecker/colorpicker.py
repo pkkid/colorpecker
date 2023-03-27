@@ -7,6 +7,20 @@ from os.path import dirname, normpath
 from PySide6 import QtCore, QtGui
 from qtemplate import QTemplateWidget
 
+COLORFORMATS = [
+    lambda c: (c.hex.upper() if c.a == 1 else c.hexa.upper()),
+    lambda c: (f'rgb({c.r}, {c.g}, {c.b})' if c.a == 1 else
+               f'rgba({c.r}, {c.g}, {c.b}, {c.a})'),
+    lambda c: (f'rgb({round(c.r*100)}%, {round(c.g*100)}%, {round(c.b*100)}%)' if c.a == 1 else
+               f'rgba({round(c.r*100)}%, {round(c.g*100)}%, {round(c.b*100)}%, {c.a})'),
+    lambda c: (f'rgb({round(c.r*255)}, {round(c.g*255)}, {round(c.b*255)})' if c.a == 1 else
+               f'rgba({round(c.r*255)}, {round(c.g*255)}, {round(c.b*255)}, {c.a})'),
+    lambda c: (f'hsl({round(c.h*360)}, {round(c.s*100)}%, {round(c.l*100)}%)' if c.a == 1 else
+               f'hsla({round(c.h*360)}, {round(c.s*100)}%, {round(c.l*100)}%, {c.a})'),
+    lambda c: (f'hsv({round(c.h*360)}, {round(c.s*100)}%, {round(c.v*100)}%)' if c.a == 1 else
+               f'hsva({round(c.h*360)}, {round(c.s*100)}%, {round(c.v*100)}%, {c.a})'),
+]
+
 
 class ColorPicker(QTemplateWidget):
     TMPL = normpath(f'{dirname(__file__)}/resources/colorpicker.tmpl')
@@ -14,15 +28,33 @@ class ColorPicker(QTemplateWidget):
     def __init__(self, color=None):
         super(ColorPicker, self).__init__()
         self.mode = RGB                 # Current slider mode
-        self.color = None               # Current color in self.mode format
+        self.color = RgbColor(0,0,0)    # Current color in self.mode format
         self._magnifier = None          # Magnifier window
         self._shiftColor = None         # color value when shift pressed
         self._eyedropColor = None       # color value when eyedrop opened
         self._updating = False          # Ignore other slider changes
+        self._initTextMenu()            # Init text display choices
         self.setColor(color)            # Set the specfied color
 
     def __str__(self):
         return f'{self.mode}{self.color}'
+    
+    def _initTextMenu(self):
+        """ Init the text display menu. """
+        pass
+        # parent = self.ids.text
+        # # Allow custom menu and remove all default actions
+        # parent.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        # self.textmenu = parent.createStandardContextMenu()
+        # self.textmenu.clear()
+        # # Build the new actions
+        # actions = []
+        # for i, cformat in enumerate(COLORFORMATS):
+        #     actions.append(QtGui.QAction(cformat(self.color), parent))
+        #     self.textmenu.addAction(actions[-1])
+        # # Show the custom menu when requested
+        # showmenu = lambda pos: self.textmenu.exec_(parent.mapToGlobal(pos))
+        # parent.customContextMenuRequested.connect(showmenu)
 
     def show(self):
         """ Show this settings window. """
@@ -52,8 +84,11 @@ class ColorPicker(QTemplateWidget):
             mimedata = clipboard.mimeData()
             if mimedata.hasText():
                 self.setColor(mimedata.text())
-        if event.key() == QtCore.Qt.Key_Shift:
-            self._shiftColor = self.color
+        match event.key():
+            case QtCore.Qt.Key_Shift:
+                self._shiftColor = self.color
+            case QtCore.Qt.Key_Escape:
+                self.setFocus()
         super().keyPressEvent(event)
     
     def keyReleaseEvent(self, event):
@@ -82,6 +117,9 @@ class ColorPicker(QTemplateWidget):
         self.color = self._eyedropColor
         self._updateSliderValues()
         self._updateDisplay()
+
+    def _textEditingFinished(self):
+        self.setColor(self.ids.text.text())
 
     def _modeChanged(self, index):
         """ Called when the color mode has changed. """
@@ -200,9 +238,14 @@ class ColorPicker(QTemplateWidget):
     
     def _updateTextDisplay(self):
         """ Update the text color display. """
+        # Update the main text display
         match self.color.a:
-            case 1: self.ids.hex.setText(self.color.hex.upper())
-            case _: self.ids.hex.setText(self.color.hexa.upper())
+            case 1: self.ids.text.lineEdit().setText(self.color.hex.upper())
+            case _: self.ids.text.lineEdit().setText(self.color.hexa.upper())
+        # Update test menu options
+        self.ids.text.clear()
+        for cformat in COLORFORMATS:
+            self.ids.text.addItem(cformat(self.color))
     
     def _updateSliderDisplay(self, id):
         """ Update the slider id given current rgba or hsva selection. """
