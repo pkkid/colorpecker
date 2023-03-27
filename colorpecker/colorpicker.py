@@ -41,20 +41,19 @@ class ColorPicker(QTemplateWidget):
     
     def _initTextMenu(self):
         """ Init the text display menu. """
-        pass
-        # parent = self.ids.text
-        # # Allow custom menu and remove all default actions
-        # parent.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-        # self.textmenu = parent.createStandardContextMenu()
-        # self.textmenu.clear()
-        # # Build the new actions
-        # actions = []
-        # for i, cformat in enumerate(COLORFORMATS):
-        #     actions.append(QtGui.QAction(cformat(self.color), parent))
-        #     self.textmenu.addAction(actions[-1])
-        # # Show the custom menu when requested
-        # showmenu = lambda pos: self.textmenu.exec_(parent.mapToGlobal(pos))
-        # parent.customContextMenuRequested.connect(showmenu)
+        parent = self.ids.text
+        # Allow custom menu and remove all default actions
+        parent.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.textmenu = parent.createStandardContextMenu()
+        self.textmenu.clear()
+        # Build the new actions
+        actions = []
+        for i, cformat in enumerate(COLORFORMATS):
+            actions.append(QtGui.QAction(cformat(self.color), parent))
+            self.textmenu.addAction(actions[-1])
+        # Show the custom menu when requested
+        showmenu = lambda pos: self.textmenu.exec_(parent.mapToGlobal(pos))
+        parent.customContextMenuRequested.connect(showmenu)
 
     def show(self):
         """ Show this settings window. """
@@ -240,12 +239,11 @@ class ColorPicker(QTemplateWidget):
         """ Update the text color display. """
         # Update the main text display
         match self.color.a:
-            case 1: self.ids.text.lineEdit().setText(self.color.hex.upper())
-            case _: self.ids.text.lineEdit().setText(self.color.hexa.upper())
+            case 1: self.ids.text.setText(self.color.hex.upper())
+            case _: self.ids.text.setText(self.color.hexa.upper())
         # Update test menu options
-        self.ids.text.clear()
-        for cformat in COLORFORMATS:
-            self.ids.text.addItem(cformat(self.color))
+        for i, action in enumerate(self.textmenu.actions()):
+            action.setText(COLORFORMATS[i](self.color))
     
     def _updateSliderDisplay(self, id):
         """ Update the slider id given current rgba or hsva selection. """

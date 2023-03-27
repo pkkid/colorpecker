@@ -34,12 +34,12 @@
           <QPushButton id='eyedropBtn' text='󰈊'>
             <Connect clicked='_eyedropClicked'/>
           </QPushButton>
-          <!-- <QLineEdit id='text' text='#000000'>
+          <QLineEdit id='text' text='#000000'>
             <Connect editingFinished='_textEditingFinished'/>
-          </QLineEdit> -->
-          <QComboBox id='text' sizePolicy='QSizePolicy.Expanding,QSizePolicy.Fixed'>
+          </QLineEdit>
+          <!-- <QComboBox id='text' sizePolicy='QSizePolicy.Expanding,QSizePolicy.Fixed'>
             <Set editable='True' insertPolicy='QComboBox.NoInsert'/>
-          </QComboBox>
+          </QComboBox> -->
           <QComboBox id='mode'>
             <Connect currentIndexChanged='_modeChanged'/>
             <Item args='RGB'/>
