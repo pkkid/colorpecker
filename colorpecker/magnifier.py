@@ -117,18 +117,19 @@ class Magnifier(QTemplateWidget):
     def _updateDisplay(self):
         """ Updates the magnifier display. """
         # Grab the global mouse position
-        pos = QtGui.QCursor.pos()
+        gpos = QtGui.QCursor.pos()
         # Get screenshot for the current display
         for i, screen in enumerate(QtWidgets.QApplication.screens()):
             geometry = screen.geometry()
-            if geometry.contains(pos):
+            if geometry.contains(gpos):
+                spos = gpos - screen.geometry().topLeft()
                 screenshot = self._screenshots[i]
                 break
         # Get the portion of the screenshot we care about
-        screenx = pos.x() - int(self.size/2)
-        screeny = pos.y() - int(self.size/2)
+        screenx = spos.x() - int(self.size/2)
+        screeny = spos.y() - int(self.size/2)
         cropped = screenshot.copy(screenx, screeny, self.size, self.size)
-        zoomed = cropped.scaled(cropped.width()*self.zoom, cropped.height()*self.zoom)
+        zoomed = cropped.scaled(self.size*self.zoom, self.size*self.zoom)
         # Crop zoomed pixmap to have rounded corners
         path = QtGui.QPainterPath()
         rect = QtCore.QRectF(self.border, self.border, self._zsize, self._zsize)
@@ -146,11 +147,10 @@ class Magnifier(QTemplateWidget):
         self.ids.magnifier.setAutoFillBackground(True)
         self.ids.magnifier.setPalette(palette)
         # Move the window to the correct location
-        x = pos.x() - round(self.width()/2.0)
-        y = pos.y() - round(self.height()/2.0)
+        x = gpos.x() - round(self.width()/2.0)
+        y = gpos.y() - round(self.height()/2.0)
         self.move(x, y)
         # Get the current color and emit the colorChanged signal
         center = (self.size/2, self.size/2)
         self.qcolor = cropped.toImage().pixelColor(*center)
         self.colorChanged.emit(self.qcolor)
-        
