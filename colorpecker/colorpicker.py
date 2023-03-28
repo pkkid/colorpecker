@@ -1,25 +1,11 @@
 # -*- coding: utf-8 -*-
 from colorpecker import log, utils  # noqa
-from colorpecker.color import RgbColor
+from colorpecker.color import COLORFORMATS, RgbColor
 from colorpecker.color import RGB, HSL, HSV, CMYK
 from colorpecker.magnifier import Magnifier
 from os.path import dirname, normpath
 from PySide6 import QtCore, QtGui
 from qtemplate import QTemplateWidget
-
-COLORFORMATS = [
-    lambda c: (c.hex.upper() if c.a == 1 else c.hexa.upper()),
-    lambda c: (f'rgb({c.r}, {c.g}, {c.b})' if c.a == 1 else
-               f'rgba({c.r}, {c.g}, {c.b}, {c.a})'),
-    lambda c: (f'rgb({round(c.r*100)}%, {round(c.g*100)}%, {round(c.b*100)}%)' if c.a == 1 else
-               f'rgba({round(c.r*100)}%, {round(c.g*100)}%, {round(c.b*100)}%, {c.a})'),
-    lambda c: (f'rgb({round(c.r*255)}, {round(c.g*255)}, {round(c.b*255)})' if c.a == 1 else
-               f'rgba({round(c.r*255)}, {round(c.g*255)}, {round(c.b*255)}, {c.a})'),
-    lambda c: (f'hsl({round(c.h*360)}, {round(c.s*100)}%, {round(c.l*100)}%)' if c.a == 1 else
-               f'hsla({round(c.h*360)}, {round(c.s*100)}%, {round(c.l*100)}%, {c.a})'),
-    lambda c: (f'hsv({round(c.h*360)}, {round(c.s*100)}%, {round(c.v*100)}%)' if c.a == 1 else
-               f'hsva({round(c.h*360)}, {round(c.s*100)}%, {round(c.v*100)}%, {c.a})'),
-]
 
 
 class ColorPicker(QTemplateWidget):
@@ -49,7 +35,7 @@ class ColorPicker(QTemplateWidget):
         # Build the new actions
         actions = []
         for i, cformat in enumerate(COLORFORMATS):
-            actions.append(QtGui.QAction(cformat(self.color), parent))
+            actions.append(QtGui.QAction(self.color.format(cformat), parent))
             self.textmenu.addAction(actions[-1])
         # Show the custom menu when requested
         showmenu = lambda pos: self.textmenu.exec_(parent.mapToGlobal(pos))
@@ -243,7 +229,8 @@ class ColorPicker(QTemplateWidget):
             case _: self.ids.text.setText(self.color.hexa.upper())
         # Update test menu options
         for i, action in enumerate(self.textmenu.actions()):
-            action.setText(COLORFORMATS[i](self.color))
+            cformat = COLORFORMATS[i]
+            action.setText(self.color.format(cformat))
     
     def _updateSliderDisplay(self, id):
         """ Update the slider id given current rgba or hsva selection. """
