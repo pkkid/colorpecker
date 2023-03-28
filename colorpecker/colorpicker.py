@@ -19,6 +19,7 @@ class ColorPicker(QTemplateWidget):
         self.cformat = COLORFORMATS[0]          # Default to the first colorformat
         self._magnifier = None                  # Magnifier window
         self._shiftColor = None                 # color value when shift pressed
+        self._textColor = None                  # color before text edited
         self._eyedropColor = None               # color value when eyedrop opened
         self._updating = False                  # Ignore other slider changes
         self.textmenu = self._initTextMenu()    # Init text display choices
@@ -52,11 +53,12 @@ class ColorPicker(QTemplateWidget):
     def setColor(self, color):
         """ Try really hard to read the text format and set the color. """
         try:
-            if isinstance(color, str):
-                color = RgbColor.fromText(color)
-            if isinstance(color, (tuple, list)):
-                color = RgbColor(*color)
-            self.color = color
+            if isinstance(color, RgbColor):
+                self.color = color
+            elif isinstance(color, (tuple, list)):
+                self.color = RgbColor(*color)
+            elif isinstance(color, str):
+                self.color = RgbColor.fromText(color)
             self._updateSliderValues()
             self._updateDisplay()
         except Exception:
@@ -81,6 +83,9 @@ class ColorPicker(QTemplateWidget):
             case QtCore.Qt.Key_Shift:
                 self._shiftColor = self.color
             case QtCore.Qt.Key_Escape:
+                if self._textColor:
+                    self.setColor(self._textColor)
+                self._textColor = None
                 self.setFocus()
         super().keyPressEvent(event)
     
@@ -111,8 +116,19 @@ class ColorPicker(QTemplateWidget):
         self._updateSliderValues()
         self._updateDisplay()
 
-    def _textEditingFinished(self):
-        self.setColor(self.ids.text.text())
+    def _textEdited(self):
+        if self._textColor is None:
+            log.info(f'_textEdited; {self.color}')
+            self._textColor = self.color
+
+    def _textReturnPressed(self):
+        try:
+            self.setColor(self.ids.text.text())
+        except Exception:
+            if self._textColor:
+                self.setColor(self._textColor)
+        self._textColor = None
+        self.setFocus()
 
     def _modeChanged(self, index):
         """ Called when the color mode has changed. """

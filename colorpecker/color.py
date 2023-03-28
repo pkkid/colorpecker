@@ -45,10 +45,12 @@ class RgbColor:
     """ RGB color object. Externally the rgba are used on a 0-255 scale by
         default. Howeever, they are internally stored on a 0-1 scale.
     """
-    def __init__(self, r,g,b,a=1):
-        self.r = round(r, 3)  # 0-1
-        self.g = round(g, 3)  # 0-1
-        self.b = round(b, 3)  # 0-1
+    def __init__(self, r, g, b, a=1, scale=None):
+        if scale is None:
+            scale = 255 if any(v > 1 for v in (r,g,b)) else 1
+        self.r = round(r / float(scale), 3)  # 0-1
+        self.g = round(g / float(scale), 3)  # 0-1
+        self.b = round(b / float(scale), 3)  # 0-1
         self.a = round(a, 3)  # 0-1
     
     cmyka = property(lambda self: self.cmyk + (self.a,))
