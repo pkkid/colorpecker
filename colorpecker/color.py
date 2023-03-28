@@ -131,54 +131,66 @@ class RgbColor:
     def fromHex(cls, text):
         """ Create an RgbColor from a hex string. """
         if matches := re.findall(REGEX_HEX, text):
-            hexa = matches[0].lower()
-            log.info(f'Parsing hex color {hexa}')
-            if hexa.startswith('#'): hexa = hexa[1:]
-            if hexa.startswith('0x'): hexa = hexa[2:]
-            match len(hexa):
-                case 3: hexa = f'{hexa[0]*2}{hexa[1]*2}{hexa[2]*2}ff'
-                case 4: hexa = f'{hexa[0]*2}{hexa[1]*2}{hexa[2]*2}{hexa[3]*2}'
-                case 5: hexa = f'{hexa}0ff'
-                case 6: hexa = f'{hexa}ff'
-                case 7: hexa = f'{hexa}f'
-                case 8: hexa = f'{hexa}'
-            rgba = (int(hexa[i:i+2], 16) for i in (0,2,4,6))
-            return cls(*(round(x/255.0,3) for x in rgba))
-        raise Exception(f'Invalid hex string: {text}')
+            try:
+                hexa = matches[0].lower()
+                log.info(f'Parsing hex color {hexa}')
+                if hexa.startswith('#'): hexa = hexa[1:]
+                if hexa.startswith('0x'): hexa = hexa[2:]
+                match len(hexa):
+                    case 3: hexa = f'{hexa[0]*2}{hexa[1]*2}{hexa[2]*2}ff'
+                    case 4: hexa = f'{hexa[0]*2}{hexa[1]*2}{hexa[2]*2}{hexa[3]*2}'
+                    case 5: hexa = f'{hexa}0ff'
+                    case 6: hexa = f'{hexa}ff'
+                    case 7: hexa = f'{hexa}f'
+                    case 8: hexa = f'{hexa}'
+                rgba = (int(hexa[i:i+2], 16) for i in (0,2,4,6))
+                return cls(*(round(x/255.0,3) for x in rgba))
+            except Exception:
+                log.error(f'Unable to parse HEX string: {text}')
+                raise
     
     @classmethod
     def fromHslText(cls, text):
         """ Creates an RgbColor from an hsl string. """
         if matches := re.findall(REGEX_HSL, text):
-            log.info(f'Parsing hsl color {text}')
-            h = text2num(matches[0][0], scale=360, default=0)
-            s = text2num(matches[0][1], scale=100, default=0)
-            l = text2num(matches[0][2], scale=100, default=0)
-            a = text2num(matches[0][3], scale=1, default=1)
-            return RgbColor.fromHsl(h,s,l,a)
-        raise Exception(f'Invalid hsl string: {text}')
+            try:
+                log.info(f'Parsing hsl color {text}')
+                h = text2num(matches[0][0], scale=360)
+                s = text2num(matches[0][1], scale=100)
+                l = text2num(matches[0][2], scale=100)
+                a = text2num(matches[0][3], scale=1, default=1)
+                return RgbColor.fromHsl(h,s,l,a)
+            except Exception:
+                log.error(f'Unable to parse HSL string: {text}')
+                raise
     
     @classmethod
     def fromHsvText(cls, text):
         """ Creates an RgbColor from an hsv string. """
         if matches := re.findall(REGEX_HSV, text):
-            log.info(f'Parsing hsv color {text}')
-            h = text2num(matches[0][0], scale=360, default=0)
-            s = text2num(matches[0][1], scale=100, default=0)
-            v = text2num(matches[0][2], scale=100, default=0)
-            a = text2num(matches[0][3], scale=1, default=1)
-            return RgbColor.fromHsv(h,s,v,a)
-        raise Exception(f'Invalid hsv string: {text}')
+            try:
+                log.info(f'Parsing hsv color {text}')
+                h = text2num(matches[0][0], scale=360)
+                s = text2num(matches[0][1], scale=100)
+                v = text2num(matches[0][2], scale=100)
+                a = text2num(matches[0][3], scale=1, default=1)
+                return RgbColor.fromHsv(h,s,v,a)
+            except Exception:
+                log.error(f'Unable to parse HSV string: {text}')
+                raise
     
     @classmethod
     def fromRgbText(cls, text):
         """ Creates an RgbColor from an rgb string. """
         if matches := re.findall(REGEX_RGB, text):
-            log.info(f'Parsing rgb color {text}')
-            rgb = (text2num(x,255) for x in matches[0][0:3])
-            a = text2num(matches[0][3], scale=1, default=1)
-            return RgbColor(*rgb, a=a)
-        raise Exception(f'Invalid rgb string: {text}')
+            try:
+                log.info(f'Parsing rgb color {text}')
+                rgb = text2num(matches[0][0:3])
+                a = text2num(matches[0][3], scale=1, default=1)
+                return RgbColor(*rgb, a=a)
+            except Exception:
+                log.error(f'Unable to parse RGB string: {text}')
+                raise
 
     @classmethod
     def fromText(cls, text):
@@ -188,29 +200,36 @@ class RgbColor:
         # we allow as we make it futher to the end.
         funcs = (cls.fromHslText, cls.fromHsvText, cls.fromRgbText, cls.fromHex)
         for func in funcs:
-            try:
-                return func(text)
-            except Exception:
-                pass  # try the next method
-        raise Exception(f'Invalid color string: {text}')
+            value = func(text)
+            if value is not None:
+                return value
+        raise Exception(f'Unknown color format: {text}')
 
 
-def text2num(text, scale=None, default=0):
-    """ Converts a simple text string to number. For example:
-        Percent examples: 100%=1; 59%=.59; 9%=0.09
-        Degree examples: 360°=1; 180°=0.5; 12°=0.03
+def text2num(values, scale=None, default=0):
+    """ Converts a list of text strings to a list of numbers. We assume the
+        same scale and suffix applies to all values in the list.
+        Percent example: (100%, 59%, 9%) => (1, .59, .09)
+        Degree example: 360° => 1
     """
-    if text == '': return default
-    # Check we can extract the scale from a suffix
-    if text.endswith('%'): text, scale = text[:-1], 100
-    if text.endswith('°'): text, scale = text[:-1], 360
-    # Convert text to float guess the scale if not set
-    value = float(text)
-    if scale is None and value > 100: scale = 255
-    elif scale is None and value > 1: scale = 100
-    elif scale is None: scale = 1
-    # Return value 0-1
-    return round(value / float(scale), 3)
+    # Quick exit and make sure we're always dealing with a list
+    if values in ('', None): return default
+    if isinstance(values, str): values = (values,)
+    # First pass, look for clues in any of the values
+    if all(v.endswith('%') for v in values):
+        values = tuple(v.replace('%','') for v in values)
+        scale = 100
+    if all(v.endswith('°') for v in values):
+        values = tuple(v.replace('°','') for v in values)
+        scale = 360
+    values = tuple(float(v) for v in values)
+    # Check all values are under 1
+    if not scale and all(v <= 1 for v in values): scale = 1
+    if not scale and any(v > 255 for v in values): scale = 360
+    if not scale: scale = 255  # Could be 100, but 255 is more popular
+    # Return values 0-1
+    values = tuple(round(v / float(scale), 3) for v in values)
+    return values[0] if len(values) == 1 else tuple(values)
 
 
 if __name__ == '__main__':

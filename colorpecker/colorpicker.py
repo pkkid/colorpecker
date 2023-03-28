@@ -3,6 +3,7 @@ from colorpecker import log, utils  # noqa
 from colorpecker.color import COLORFORMATS, RgbColor
 from colorpecker.color import RGB, HSL, HSV, CMYK
 from colorpecker.magnifier import Magnifier
+from functools import partial
 from os.path import dirname, normpath
 from PySide6 import QtCore, QtGui
 from qtemplate import QTemplateWidget
@@ -13,33 +14,35 @@ class ColorPicker(QTemplateWidget):
 
     def __init__(self, color=None):
         super(ColorPicker, self).__init__()
-        self.mode = RGB                 # Current slider mode
-        self.color = RgbColor(0,0,0)    # Current color in self.mode format
-        self._magnifier = None          # Magnifier window
-        self._shiftColor = None         # color value when shift pressed
-        self._eyedropColor = None       # color value when eyedrop opened
-        self._updating = False          # Ignore other slider changes
-        self._initTextMenu()            # Init text display choices
-        self.setColor(color)            # Set the specfied color
+        self.mode = RGB                         # Current slider mode
+        self.color = RgbColor(0,0,0)            # Current color in self.mode format
+        self.cformat = COLORFORMATS[0]          # Default to the first colorformat
+        self._magnifier = None                  # Magnifier window
+        self._shiftColor = None                 # color value when shift pressed
+        self._eyedropColor = None               # color value when eyedrop opened
+        self._updating = False                  # Ignore other slider changes
+        self.textmenu = self._initTextMenu()    # Init text display choices
+        self.setColor(color)                    # Set the specfied color
 
     def __str__(self):
         return f'{self.mode}{self.color}'
     
     def _initTextMenu(self):
         """ Init the text display menu. """
-        parent = self.ids.text
         # Allow custom menu and remove all default actions
-        parent.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-        self.textmenu = parent.createStandardContextMenu()
-        self.textmenu.clear()
+        qobj = self.ids.text
+        qobj.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        textmenu = qobj.createStandardContextMenu()
+        textmenu.clear()
         # Build the new actions
-        actions = []
-        for i, cformat in enumerate(COLORFORMATS):
-            actions.append(QtGui.QAction(self.color.format(cformat), parent))
-            self.textmenu.addAction(actions[-1])
+        for cformat in COLORFORMATS:
+            action = QtGui.QAction(self.color.format(cformat), qobj)
+            action.triggered.connect(partial(self.setColorFormat, cformat))
+            textmenu.addAction(action)
         # Show the custom menu when requested
-        showmenu = lambda pos: self.textmenu.exec_(parent.mapToGlobal(pos))
-        parent.customContextMenuRequested.connect(showmenu)
+        showmenu = lambda pos: textmenu.exec_(qobj.mapToGlobal(pos))
+        qobj.customContextMenuRequested.connect(showmenu)
+        return textmenu
 
     def show(self):
         """ Show this settings window. """
@@ -58,6 +61,11 @@ class ColorPicker(QTemplateWidget):
             self._updateDisplay()
         except Exception:
             raise Exception(f'Unable to parse color {color}')
+    
+    def setColorFormat(self, cformat):
+        """ Set the color format from one of color.COLORFORMATS. """
+        self.cformat = cformat
+        self._updateTextDisplay()
     
     def keyPressEvent(self, event):
         """ When shift is pressed, we save the color to help with calculating
@@ -224,9 +232,10 @@ class ColorPicker(QTemplateWidget):
     def _updateTextDisplay(self):
         """ Update the text color display. """
         # Update the main text display
-        match self.color.a:
-            case 1: self.ids.text.setText(self.color.hex.upper())
-            case _: self.ids.text.setText(self.color.hexa.upper())
+        self.ids.text.setText(self.color.format(self.cformat))
+        # match self.color.a:
+        #     case 1: self.ids.text.setText(self.color.hex.upper())
+        #     case _: self.ids.text.setText(self.color.hexa.upper())
         # Update test menu options
         for i, action in enumerate(self.textmenu.actions()):
             cformat = COLORFORMATS[i]
