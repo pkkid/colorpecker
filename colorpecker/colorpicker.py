@@ -62,7 +62,8 @@ class ColorPicker(QTemplateWidget):
             self._updateSliderValues()
             self._updateDisplay()
         except Exception:
-            raise Exception(f'Unable to parse color {color}')
+            log.exception(f'Unable to parse color {color}')
+            raise
     
     def setColorFormat(self, cformat):
         """ Set the color format from one of color.COLORFORMATS. """

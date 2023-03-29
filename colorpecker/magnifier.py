@@ -8,17 +8,15 @@ from qtemplate import QTemplateWidget
 class Magnifier(QTemplateWidget):
     TMPLSTR = f"""
       <QWidget id='magnifierwrap' layout='QVBoxLayout()' padding='0'>
-        <set mouseTracking='True'/>
         <set windowFlags='Qt.WindowStaysOnTopHint'/>
         <StyleSheet args='{dirname(__file__)}/resources/colorpicker.sass'/>
         <Set attribute='Qt.WA_TranslucentBackground'/>
         <Set windowFlags='Qt.Dialog | Qt.FramelessWindowHint'/>
         <QWidget id='magnifier'>
           <DropShadow args='(0,5,20,128)'/>
-          <set mouseTracking='True'/>
           <set cursor='Qt.BlankCursor'/>
-          <QWidget id='bsquare'><set mouseTracking='True'/></QWidget>
-          <QWidget id='wsquare'><set mouseTracking='True'/></QWidget>
+          <QWidget id='bsquare'/>
+          <QWidget id='wsquare'/>
         </QWidget>
       </QWidget>
     """
@@ -36,6 +34,8 @@ class Magnifier(QTemplateWidget):
         self._zsize = size*zoom                     # Size of zoomed in screenshot
         self._fsize = self._zsize+self.border*2     # Fill size of magnifier
         self._screenshots = None                    # Holds desktop screenshots
+        self._timer = None                          # QTimer used to update the data
+        self._lastpos = None                        # Last position we updated
         self._fadein = QtCore.QPropertyAnimation(self, b'windowOpacity')
         self._fadeout = QtCore.QPropertyAnimation(self, b'windowOpacity')
         self.setWindowOpacity(0.0)
@@ -46,6 +46,7 @@ class Magnifier(QTemplateWidget):
         self._setMagnifierSize()
         self._updateTargets()
         super(Magnifier, self).show()
+        self._startTrackingTimer()
         self._updateDisplay()
     
     def showEvent(self, event):
@@ -55,11 +56,20 @@ class Magnifier(QTemplateWidget):
         self._fadein.start()
     
     def close(self):
+        self._timer.stop()
         self._fadeout.setDuration(200)
         self._fadeout.setStartValue(1.0)
         self._fadeout.setEndValue(0.0)
         self._fadeout.finished.connect(super(Magnifier, self).close)
         self._fadeout.start()
+    
+    def _startTrackingTimer(self):
+        """ Start the update timer. """
+        if self._timer is None:
+            self._timer = QtCore.QTimer()
+            self._timer.timeout.connect(self._updateDisplay)
+        log.info('Tracking mouse position..')
+        self._timer.start(15)  # 60 fps
     
     def keyPressEvent(self, event):
         """ When shift is pressed, we save the color to help with calculating
@@ -82,11 +92,6 @@ class Magnifier(QTemplateWidget):
             case QtCore.Qt.Key_Escape:
                 self.cancelled.emit()
                 self.close()
-    
-    def mouseMoveEvent(self, event):
-        # Take a screenshot of what's under the QWidget
-        if not self._fadeout.state() == QtCore.QPropertyAnimation.Running:
-            self._updateDisplay()
     
     def mouseReleaseEvent(self, event):
         """ Grab the color or cancel. """
@@ -117,7 +122,11 @@ class Magnifier(QTemplateWidget):
     def _updateDisplay(self):
         """ Updates the magnifier display. """
         # Grab the global mouse position
+        # Exit early is not changed
         gpos = QtGui.QCursor.pos()
+        if gpos == self._lastpos:
+            return
+        self._lastpos = gpos
         # Get screenshot for the current display
         for i, screen in enumerate(QtWidgets.QApplication.screens()):
             geometry = screen.geometry()

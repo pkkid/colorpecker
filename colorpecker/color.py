@@ -157,11 +157,8 @@ class RgbColor:
         if matches := re.findall(REGEX_HSL, text):
             try:
                 log.info(f'Parsing hsl color {text}')
-                h = text2num(matches[0][0], scale=360)
-                s = text2num(matches[0][1], scale=100)
-                l = text2num(matches[0][2], scale=100)
-                a = text2num(matches[0][3], scale=1, default=1)
-                return RgbColor.fromHsl(h,s,l,a)
+                hsla = text2vals(matches[0], (360,100,100,1), (0,0,0,1))
+                return RgbColor.fromHsl(*hsla)
             except Exception:
                 log.error(f'Unable to parse HSL string: {text}')
                 raise
@@ -172,11 +169,8 @@ class RgbColor:
         if matches := re.findall(REGEX_HSV, text):
             try:
                 log.info(f'Parsing hsv color {text}')
-                h = text2num(matches[0][0], scale=360)
-                s = text2num(matches[0][1], scale=100)
-                v = text2num(matches[0][2], scale=100)
-                a = text2num(matches[0][3], scale=1, default=1)
-                return RgbColor.fromHsv(h,s,v,a)
+                hsva = text2vals(matches[0], (360,100,100,1), (0,0,0,1))
+                return RgbColor.fromHsv(*hsva)
             except Exception:
                 log.error(f'Unable to parse HSV string: {text}')
                 raise
@@ -187,9 +181,8 @@ class RgbColor:
         if matches := re.findall(REGEX_RGB, text):
             try:
                 log.info(f'Parsing rgb color {text}')
-                rgb = text2num(matches[0][0:3])
-                a = text2num(matches[0][3], scale=1, default=1)
-                return RgbColor(*rgb, a=a)
+                rgba = text2vals(matches[0], (255,255,255,1), (0,0,0,1))
+                return RgbColor.fromRgb(*rgba)
             except Exception:
                 log.error(f'Unable to parse RGB string: {text}')
                 raise
@@ -208,35 +201,23 @@ class RgbColor:
         raise Exception(f'Unknown color format: {text}')
 
 
-def text2num(values, scale=None, default=0):
-    """ Converts a list of text strings to a list of numbers. We assume the
-        same scale and suffix applies to all values in the list.
-        Percent example: (100%, 59%, 9%) => (1, .59, .09)
-        Degree example: 360° => 1
-    """
-    # Quick exit and make sure we're always dealing with a list
-    if values in ('', None): return default
-    if isinstance(values, str): values = (values,)
-    # First pass, look for clues in any of the values
-    if all(v.endswith('%') for v in values):
-        values = tuple(v.replace('%','') for v in values)
-        scale = 100
-    if all(v.endswith('°') for v in values):
-        values = tuple(v.replace('°','') for v in values)
-        scale = 360
-    values = tuple(float(v) for v in values)
-    # Check all values are under 1
-    if not scale and all(v <= 1 for v in values): scale = 1
-    if not scale and any(v > 255 for v in values): scale = 360
-    if not scale: scale = 255  # Could be 100, but 255 is more popular
-    # Return values 0-1
-    values = tuple(round(v / float(scale), 3) for v in values)
-    return values[0] if len(values) == 1 else tuple(values)
-
-
-if __name__ == '__main__':
-    cmyk = (0.2,0.3,0.4,0.2)
-    color = RgbColor.fromCmyk(*cmyk)
-    print(list(cmyk))
-    print([round(x*255) for x in color.rgb])
-    print([x for x in color.cmyk])
+def text2vals(values, scales, defaults):
+    """ Converts a text strings to numbers. """
+    result = [None] * len(defaults)
+    scales = list(scales)
+    # Check any values are percent or degrees
+    for i, value in enumerate(values):
+        result[i] = values[i] if len(values) >= i else defaults[i]
+        result[i] = result[i] or defaults[i]
+        if isinstance(result[i], str) and result[i].endswith('%'):
+            result[i] = result[i].replace('%', '')
+            scales[i] = 100
+        if isinstance(result[i], str) and result[i].endswith('°'):
+            result[i] = result[i].replace('°', '')
+            scales[i] = 360
+        result[i] = float(result[i])
+    # Override scales if all values <= 1
+    if all(v <= 1 for v in result):
+        scales = [1] * len(result)
+    # Return the result values
+    return (round(result[i] / float(scales[i]), 3) for i in range(len(result)))
