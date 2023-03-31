@@ -3,9 +3,10 @@ from colorpecker import log, utils  # noqa
 from colorpecker.color import COLORFORMATS, RgbColor
 from colorpecker.color import RGB, HSL, HSV, CMYK
 from colorpecker.magnifier import Magnifier
-from functools import partial
+from colorpecker.settings import Settings
 from os.path import dirname, normpath
-from PySide6 import QtCore, QtGui
+from PySide6 import QtGui
+from PySide6.QtCore import Qt
 from qtemplate import QTemplateWidget
 
 
@@ -17,37 +18,21 @@ class ColorPicker(QTemplateWidget):
         self.mode = RGB                         # Current slider mode
         self.color = RgbColor(0,0,0)            # Current color in self.mode format
         self.cformat = COLORFORMATS[0]          # Default to the first colorformat
+        self.settings = Settings(self)          # Settings object
         self._magnifier = None                  # Magnifier window
         self._shiftColor = None                 # color value when shift pressed
         self._textColor = None                  # color before text edited
         self._eyedropColor = None               # color value when eyedrop opened
         self._updating = False                  # Ignore other slider changes
-        self.textmenu = self._initTextMenu()    # Init text display choices
         self.setColor(color)                    # Set the specfied color
 
     def __str__(self):
         return f'{self.mode}{self.color}'
-    
-    def _initTextMenu(self):
-        """ Init the text display menu. """
-        # Allow custom menu and remove all default actions
-        qobj = self.ids.text
-        qobj.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-        textmenu = qobj.createStandardContextMenu()
-        textmenu.clear()
-        # Build the new actions
-        for cformat in COLORFORMATS:
-            action = QtGui.QAction(self.color.format(cformat), qobj)
-            action.triggered.connect(partial(self.setColorFormat, cformat))
-            textmenu.addAction(action)
-        # Show the custom menu when requested
-        showmenu = lambda pos: textmenu.exec_(qobj.mapToGlobal(pos))
-        qobj.customContextMenuRequested.connect(showmenu)
-        return textmenu
 
-    def show(self):
+    def show(self, pos=None):
         """ Show this settings window. """
-        utils.centerWindow(self)
+        if pos: self.move(pos)
+        else: utils.centerWindow(self)
         super(ColorPicker, self).show()
 
     def setColor(self, color):
@@ -64,11 +49,12 @@ class ColorPicker(QTemplateWidget):
         except Exception:
             log.exception(f'Unable to parse color {color}')
             raise
-    
+
     def setColorFormat(self, cformat):
         """ Set the color format from one of color.COLORFORMATS. """
         self.cformat = cformat
         self._updateTextDisplay()
+        # self.settings.storage.setValue('showOpacity', value)
     
     def keyPressEvent(self, event):
         """ When shift is pressed, we save the color to help with calculating
@@ -81,9 +67,9 @@ class ColorPicker(QTemplateWidget):
             if mimedata.hasText():
                 self.setColor(mimedata.text())
         match event.key():
-            case QtCore.Qt.Key_Shift:
+            case Qt.Key_Shift:
                 self._shiftColor = self.color
-            case QtCore.Qt.Key_Escape:
+            case Qt.Key_Escape:
                 if self._textColor:
                     self.setColor(self._textColor)
                 self._textColor = None
@@ -92,7 +78,7 @@ class ColorPicker(QTemplateWidget):
     
     def keyReleaseEvent(self, event):
         """ When shift is released, no longer store the color. """
-        if event.key() == QtCore.Qt.Key_Shift:
+        if event.key() == Qt.Key_Shift:
             self._shiftColor = None
         super().keyReleaseEvent(event)
 
@@ -248,16 +234,9 @@ class ColorPicker(QTemplateWidget):
     
     def _updateTextDisplay(self):
         """ Update the text color display. """
-        # Update the main text display
         self.ids.text.setText(self.color.format(self.cformat))
-        # match self.color.a:
-        #     case 1: self.ids.text.setText(self.color.hex.upper())
-        #     case _: self.ids.text.setText(self.color.hexa.upper())
-        # Update test menu options
-        for i, action in enumerate(self.textmenu.actions()):
-            cformat = COLORFORMATS[i]
-            action.setText(self.color.format(cformat))
-    
+        self.settings.updateColorFormats(self.color)
+
     def _updateSliderDisplay(self, id):
         """ Update the slider id given current rgba or hsva selection. """
         gradient = f"""#{self.mode}_{id} QSlider {{
