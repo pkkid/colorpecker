@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from colorpecker import log, utils  # noqa
+from colorpecker import log  # noqa
 from qtemplate import QTemplateWidget
 from PySide6.QtCore import Signal
 

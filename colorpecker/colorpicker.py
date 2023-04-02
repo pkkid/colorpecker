@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
-from colorpecker import log, utils  # noqa
+from colorpecker import log  # noqa
 from colorpecker.color import COLORFORMATS, RgbColor
 from colorpecker.color import RGB, HSL, HSV, CMYK
 from colorpecker.magnifier import Magnifier
 from colorpecker.settings import Settings
 from os.path import dirname, normpath
-from PySide6 import QtGui
+from PySide6 import QtGui, QtWidgets
 from PySide6.QtCore import Qt
 from qtemplate import QTemplateWidget
 
@@ -31,8 +31,14 @@ class ColorPicker(QTemplateWidget):
 
     def show(self, pos=None):
         """ Show this settings window. """
-        if pos: self.move(pos)
-        else: utils.centerWindow(self)
+        if not pos:
+            geometry = self.frameGeometry()
+            cursorpos = QtGui.QCursor.pos()
+            screen = QtWidgets.QApplication.screenAt(cursorpos)
+            centerpos = screen.geometry().center()
+            geometry.moveCenter(centerpos)
+            pos = geometry.topLeft()
+        self.move(pos)
         super(ColorPicker, self).show()
 
     def setColor(self, color):

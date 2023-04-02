@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import signal
 from argparse import ArgumentParser
-from colorpecker import APPNAME, STORAGEDIR, log, testing
+from colorpecker import APPNAME, STORAGEDIR, log
 from colorpecker.colorpicker import ColorPicker
 from inkwell import inkwell
 from os.path import normpath
@@ -15,13 +15,12 @@ class Application(QtWidgets.QApplication):
 
     def __init__(self, opts):
         super(Application, self).__init__()
-        inkwell.addApplicationFonts()                   # Add Inkwell fonts
-        inkwell.applyStyleSheet(self)                   # Apply Inkwell styles
-        self.opts = opts                                # Command line options
-        self.storage = self._initStorage()              # Setup settings storage
-        self.colorpecker = ColorPicker((1,0,0))         # Main window
-        self.colorpecker.show()                         # Show the main window
-        if opts.test: testing.initTests()               # Init tests if requested
+        inkwell.addApplicationFonts()               # Add Inkwell fonts
+        inkwell.applyStyleSheet(self)               # Apply Inkwell styles
+        self.opts = opts                            # Command line options
+        self.storage = self._initStorage()          # Setup settings storage
+        self.colorpecker = ColorPicker((1,0,0))     # Main window
+        self.colorpecker.show()                     # Show the main window
 
     def _initStorage(self):
         """ Create the storage object to get and save settings. """
