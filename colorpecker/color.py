@@ -2,6 +2,7 @@
 import re
 import colorsys
 from colorpecker import log  # noqa
+from collections import namedtuple, OrderedDict
 
 # Color modes
 RGB = 'rgb'
@@ -20,25 +21,27 @@ REGEX_HSV = re.compile(rf'hsva?\({_DEG}{_DELIM}{_NUM}{_DELIM}{_NUM}(?:{_DELIM}{_
 REGEX_HEX = re.compile(r'((?:\#|0x)[a-f\d]{3,8})', re.I)
 
 # Color Formats
-COLORFORMATS = [{
-    'opaque': lambda color: color.hex.upper(),
-    'alpha': lambda color: color.hexa.upper(),
-},{
-    'opaque': lambda color: f'rgb({color.r}, {color.g}, {color.b})',
-    'alpha': lambda color: f'rgba({color.r}, {color.g}, {color.b}, {color.a})',
-},{
-    'opaque': lambda color: f'rgb({round(color.r*100)}%, {round(color.g*100)}%, {round(color.b*100)}%)',
-    'alpha': lambda color: f'rgba({round(color.r*100)}%, {round(color.g*100)}%, {round(color.b*100)}%, {color.a})',
-},{
-    'opaque': lambda color: f'rgb({round(color.r*255)}, {round(color.g*255)}, {round(color.b*255)})',
-    'alpha': lambda color: f'rgba({round(color.r*255)}, {round(color.g*255)}, {round(color.b*255)}, {color.a})',
-},{
-    'opaque': lambda color: f'hsl({round(color.h*360)}, {round(color.s*100)}%, {round(color.l*100)}%)',
-    'alpha': lambda color: f'hsla({round(color.h*360)}, {round(color.s*100)}%, {round(color.l*100)}%, {color.a})',
-},{
-    'opaque': lambda color: f'hsv({round(color.h*360)}, {round(color.s*100)}%, {round(color.v*100)}%)',
-    'alpha': lambda color: f'hsva({round(color.h*360)}, {round(color.s*100)}%, {round(color.v*100)}%, {color.a})',
-}]
+ColorFormat = namedtuple('ColorFormat', 'name,opaque,alpha')
+COLORFORMATS = OrderedDict({cf.name:cf for cf in [
+    ColorFormat('hex',
+        lambda color: color.hex.upper(),
+        lambda color: color.hexa.upper()),
+    ColorFormat('rgb1',
+        lambda color: f'rgb({color.r}, {color.g}, {color.b})',
+        lambda color: f'rgba({color.r}, {color.g}, {color.b}, {color.a})'),
+    ColorFormat('rgb100',
+        lambda color: f'rgb({round(color.r*100)}%, {round(color.g*100)}%, {round(color.b*100)}%)',
+        lambda color: f'rgba({round(color.r*100)}%, {round(color.g*100)}%, {round(color.b*100)}%, {color.a})'),
+    ColorFormat('rgb255',
+        lambda color: f'rgb({round(color.r*255)}, {round(color.g*255)}, {round(color.b*255)})',
+        lambda color: f'rgba({round(color.r*255)}, {round(color.g*255)}, {round(color.b*255)}, {color.a})'),
+    ColorFormat('hsl100',
+        lambda color: f'hsl({round(color.h*360)}, {round(color.s*100)}%, {round(color.l*100)}%)',
+        lambda color: f'hsla({round(color.h*360)}, {round(color.s*100)}%, {round(color.l*100)}%, {color.a})'),
+    ColorFormat('hsv100',
+        lambda color: f'hsv({round(color.h*360)}, {round(color.s*100)}%, {round(color.v*100)}%)',
+        lambda color: f'hsva({round(color.h*360)}, {round(color.s*100)}%, {round(color.v*100)}%, {color.a})'),
+]})
 
 
 class RgbColor:
@@ -90,7 +93,7 @@ class RgbColor:
 
     def format(self, cformat):
         """ Return a color formatted with the specified color format. """
-        return cformat['opaque'](self) if self.a == 1 else cformat['alpha'](self)
+        return cformat.opaque(self) if self.a == 1 else cformat.alpha(self)
 
     def swap(self, id, value):
         """ Returns a copy of the current color with id value swapped. """

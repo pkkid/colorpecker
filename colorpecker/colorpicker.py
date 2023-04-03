@@ -17,7 +17,7 @@ class ColorPicker(QTemplateWidget):
         super(ColorPicker, self).__init__()
         self.mode = RGB                         # Current slider mode
         self.color = RgbColor(0,0,0)            # Current color in self.mode format
-        self.cformat = COLORFORMATS[0]          # Default to the first colorformat
+        self.cformat = COLORFORMATS['hex']      # Default to hex
         self.settings = Settings(self)          # Settings object
         self._magnifier = None                  # Magnifier window
         self._shiftColor = None                 # color value when shift pressed
@@ -241,7 +241,8 @@ class ColorPicker(QTemplateWidget):
     def _updateTextDisplay(self):
         """ Update the text color display. """
         self.ids.text.setText(self.color.format(self.cformat))
-        self.settings.updateColorFormats(self.color)
+        if hasattr(self, 'settings'):
+            self.settings.updateColorFormats(self.color)
 
     def _updateSliderDisplay(self, id):
         """ Update the slider id given current rgba or hsva selection. """

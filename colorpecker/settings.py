@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 from os.path import normpath
 from colorpecker import STORAGEDIR, log
-from colorpecker.color import COLORFORMATS
+from colorpecker.color import ColorFormat, COLORFORMATS
+from functools import partial
 from PySide6 import QtCore, QtGui, QtWidgets
 from PySide6.QtCore import Qt
 
@@ -13,17 +14,34 @@ class Settings:
         self.parent = parent        # Qobj menu is applied to
         self.menu = None            # Conext menu object
         self._initStorage()         # Settings storage
-        self._initMenu()            # Initialize the menu
+        self._initMainMenu()        # Initialize the menu
 
     @property
     def alwaysOnTop(self):
         """ Get the Always On Top value. """
-        return self.storage.value('alwaysOnTop', 'true').lower() == 'true'
+        try:
+            value = self.storage.value('alwaysOnTop', 'false')
+            return value.lower() == 'true'
+        except Exception:
+            return False
 
     @property
     def showOpacity(self):
         """ Get the Show Opacity value. """
-        return self.storage.value('showOpacity', 'true').lower() == 'true'
+        try:
+            value = self.storage.value('showOpacity', 'true')
+            return value.lower() == 'true'
+        except Exception:
+            return True
+        
+    @property
+    def colorFormat(self):
+        """ Get the Color Format. """
+        try:
+            cformat = self.storage.value('colorFormat', 'hex').lower()
+            return COLORFORMATS[cformat]
+        except Exception:
+            return COLORFORMATS['hex']
 
     def _initStorage(self):
         """ Initialize settings storage. """
@@ -31,8 +49,8 @@ class Settings:
         self.storage = QtCore.QSettings(filepath, QtCore.QSettings.IniFormat)
         log.info(f'ColorPecker Settings: {normpath(self.storage.fileName())}')
 
-    def _initMenu(self):
-        """ Initialize the menu. """
+    def _initMainMenu(self):
+        """ Initialize the main menu. """
         self.menu = QtWidgets.QMenu()
         # Always on Top
         self.menu.alwaysOnTop = QtGui.QAction('Always on Top', self.parent)
@@ -46,15 +64,18 @@ class Settings:
         self.menu.showOpacity.triggered.connect(self.setShowOpacity)
         self.menu.addAction(self.menu.showOpacity)
         self.setShowOpacity(self.showOpacity)
-        # TODO: INIT VALUE
-        # Color Formats
+        # Color Format
         self.menu.formats = QtWidgets.QMenu('Color Format')
-        for cformat in COLORFORMATS:
+        for cformat in COLORFORMATS.values():
             text = self.parent.color.format(cformat)
-            faction = QtGui.QAction(text, self.parent)
-            self.menu.formats.addAction(faction)
+            action = QtGui.QAction(text, self.parent)
+            action.setCheckable(True)
+            action.triggered.connect(partial(self.setColorFormat, cformat.name))
+            action.setProperty('cformat', cformat.name)
+            self.menu.formats.addAction(action)
         self.menu.addMenu(self.menu.formats)
-        # Link menu to parent widget
+        self.setColorFormat(self.colorFormat)
+        # Link main menu to parent widget
         self.parent.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.parent.customContextMenuRequested.connect(self.show)
     
@@ -64,15 +85,18 @@ class Settings:
     def setAlwaysOnTop(self, value=None):
         """ Set always on top value. Toggles value if None. """
         log.info(f'setAlwaysOnTop({value})')
-        value = value if value is not None else not self.alwaysOnTop
+        if value is None:
+            value = self.alwaysOnTop
+        # Update Window flag
         pos = self.parent.pos()
         flags = self.parent.windowFlags()
-        log.info(flags)
-        if value: flags |= Qt.WindowStaysOnTopHint
-        else: flags &= ~Qt.WindowStaysOnTopHint
-        log.info(flags)
+        if value:
+            flags |= Qt.WindowStaysOnTopHint
+        else:
+            flags &= ~Qt.WindowStaysOnTopHint
         self.parent.setWindowFlags(flags)
         self.parent.show(pos)
+        # Update menu display and save setting
         self.menu.alwaysOnTop.setChecked(value)
         self.storage.setValue('alwaysOnTop', value)
         self.storage.sync()
@@ -80,15 +104,33 @@ class Settings:
     def setShowOpacity(self, value=None):
         """ Toggle show opacity value. """
         log.info(f'setShowOpacity({value})')
-        value = not self.showOpacity if value is None else value
+        if value is None:
+            value = not self.showOpacity
+        # Update alpha visibility
         self.parent.ids.a.setValue(100)
         self.parent.ids.a.setVisible(value)
+        # Update menu display and save setting
         self.menu.showOpacity.setChecked(value)
         self.storage.setValue('showOpacity', value)
+        self.storage.sync()
+    
+    def setColorFormat(self, cformat=None):
+        """ Set the format action. """
+        log.info(f'setColorFormat({cformat})')
+        if isinstance(cformat, str):
+            cformat = COLORFORMATS[cformat]
+        # Update parent color format
+        self.parent.cformat = cformat
+        self.parent._updateTextDisplay()
+        # Update menu display and save setting
+        for action in self.menu.formats.actions():
+            checked = cformat.name == action.property('cformat')
+            action.setChecked(checked)
+        self.storage.setValue('colorFormat', cformat.name)
         self.storage.sync()
 
     def updateColorFormats(self, color):
         """ Update the color format choices to match current color. """
-        for i, action in enumerate(self.menu.formats.actions()):
-            cformat = COLORFORMATS[i]
+        for action in self.menu.formats.actions():
+            cformat = COLORFORMATS[action.property('cformat')]
             action.setText(color.format(cformat))
