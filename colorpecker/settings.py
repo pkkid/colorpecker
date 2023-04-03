@@ -65,22 +65,30 @@ class Settings:
         self.menu.addAction(self.menu.showOpacity)
         self.setShowOpacity(self.showOpacity)
         # Color Format
-        self.menu.formats = QtWidgets.QMenu('Color Format')
+        self.menu.colorFormats = QtWidgets.QMenu('Color Format')
         for cformat in COLORFORMATS.values():
             text = self.parent.color.format(cformat)
             action = QtGui.QAction(text, self.parent)
             action.setCheckable(True)
             action.triggered.connect(partial(self.setColorFormat, cformat.name))
             action.setProperty('cformat', cformat.name)
-            self.menu.formats.addAction(action)
-        self.menu.addMenu(self.menu.formats)
+            self.menu.colorFormats.addAction(action)
+        self.menu.addMenu(self.menu.colorFormats)
         self.setColorFormat(self.colorFormat)
         # Link main menu to parent widget
         self.parent.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-        self.parent.customContextMenuRequested.connect(self.show)
+        self.parent.customContextMenuRequested.connect(self.showMainMenu)
+        # Link the color format menu to the text input
+        self.parent.ids.text.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.parent.ids.text.customContextMenuRequested.connect(self.showColorFormat)
     
-    def show(self, pos):
-        self.menu.exec_(self.parent.mapToGlobal(pos))
+    def showMainMenu(self, pos):
+        gpos = self.parent.mapToGlobal(pos)
+        self.menu.exec_(gpos)
+    
+    def showColorFormat(self, pos):
+        gpos = self.parent.ids.text.mapToGlobal(pos)
+        self.menu.colorFormats.exec_(gpos)
 
     def setAlwaysOnTop(self, value=None):
         """ Set always on top value. Toggles value if None. """
@@ -123,7 +131,7 @@ class Settings:
         self.parent.cformat = cformat
         self.parent._updateTextDisplay()
         # Update menu display and save setting
-        for action in self.menu.formats.actions():
+        for action in self.menu.colorFormats.actions():
             checked = cformat.name == action.property('cformat')
             action.setChecked(checked)
         self.storage.setValue('colorFormat', cformat.name)
@@ -131,6 +139,6 @@ class Settings:
 
     def updateColorFormats(self, color):
         """ Update the color format choices to match current color. """
-        for action in self.menu.formats.actions():
+        for action in self.menu.colorFormats.actions():
             cformat = COLORFORMATS[action.property('cformat')]
             action.setText(color.format(cformat))
