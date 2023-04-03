@@ -24,8 +24,8 @@ class Magnifier(QTemplateWidget):
     colorSelected = QtCore.Signal(QtGui.QColor)     # Called when selecting a color
     cancelled = QtCore.Signal()                     # Called when cancelling selection
 
-    def __init__(self, size=21, zoom=8, border=5, radius=20):
-        super(Magnifier, self).__init__()
+    def __init__(self, size=21, zoom=8, border=5, radius=20, parent=None):
+        super(Magnifier, self).__init__(parent=parent)
         self.size = size                            # Size of magnifier before zoom
         self.zoom = zoom                            # Amount to magnify
         self.border = border                        # Magnifier border-width

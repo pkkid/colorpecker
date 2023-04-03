@@ -91,7 +91,7 @@ class ColorPicker(QTemplateWidget):
     def _eyedropClicked(self):
         """ Show the eyedropper manginfier. """
         if not self._magnifier:
-            self._magnifier = Magnifier()
+            self._magnifier = Magnifier(parent=self)
             self._magnifier.colorChanged.connect(self._eyedropColorChanged)
             self._magnifier.cancelled.connect(self._eyedropCancelled)
         self._eyedropColor = self.color
