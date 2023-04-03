@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from os.path import normpath
 from colorpecker import STORAGEDIR, log
-from colorpecker.color import ColorFormat, COLORFORMATS
+from colorpecker.color import COLORFORMATS
 from functools import partial
 from PySide6 import QtCore, QtGui, QtWidgets
 from PySide6.QtCore import Qt
